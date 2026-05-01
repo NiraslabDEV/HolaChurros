@@ -11,48 +11,66 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const pool = new Pool({
+if (!process.env.DATABASE_URL) {
+  console.warn('⚠️  DATABASE_URL não definida. As funcionalidades de base de dados estarão inactivas.');
+}
+
+const pool = process.env.DATABASE_URL ? new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+  ssl: process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }
+}) : null;
 
 // ── INIT DB ──────────────────────────────────────────────────────────────────
 async function initDB() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS orders (
-      id SERIAL PRIMARY KEY,
-      customer_name VARCHAR(255) NOT NULL,
-      phone VARCHAR(50) NOT NULL,
-      address TEXT NOT NULL,
-      items JSONB NOT NULL,
-      sauce VARCHAR(100),
-      total INTEGER NOT NULL,
-      notes TEXT,
-      status VARCHAR(50) DEFAULT 'pendente',
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    );
+  if (!pool) return;
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id SERIAL PRIMARY KEY,
+        customer_name VARCHAR(255) NOT NULL,
+        phone VARCHAR(50) NOT NULL,
+        address TEXT NOT NULL,
+        items JSONB NOT NULL,
+        sauce VARCHAR(100),
+        total INTEGER NOT NULL,
+        notes TEXT,
+        status VARCHAR(50) DEFAULT 'pendente',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
 
-    CREATE TABLE IF NOT EXISTS events (
-      id SERIAL PRIMARY KEY,
-      contact_name VARCHAR(255) NOT NULL,
-      phone VARCHAR(50) NOT NULL,
-      event_type VARCHAR(255) NOT NULL,
-      event_date DATE NOT NULL,
-      location TEXT NOT NULL,
-      start_time TIME NOT NULL,
-      end_time TIME NOT NULL,
-      participants INTEGER NOT NULL,
-      service VARCHAR(100) NOT NULL,
-      notes TEXT,
-      status VARCHAR(50) DEFAULT 'pendente',
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
-  console.log('✅ Tabelas prontas');
+      CREATE TABLE IF NOT EXISTS events (
+        id SERIAL PRIMARY KEY,
+        contact_name VARCHAR(255) NOT NULL,
+        phone VARCHAR(50) NOT NULL,
+        event_type VARCHAR(255) NOT NULL,
+        event_date DATE NOT NULL,
+        location TEXT NOT NULL,
+        start_time TIME NOT NULL,
+        end_time TIME NOT NULL,
+        participants INTEGER NOT NULL,
+        service VARCHAR(100) NOT NULL,
+        notes TEXT,
+        status VARCHAR(50) DEFAULT 'pendente',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+    console.log('✅ Tabelas prontas');
+  } catch (err) {
+    console.error('❌ Erro ao inicializar BD:', err.message);
+  }
+}
+
+function dbCheck(res) {
+  if (!pool) {
+    res.status(503).json({ error: 'Base de dados não configurada. Adicione o PostgreSQL na Railway.' });
+    return false;
+  }
+  return true;
 }
 
 // ── ORDERS ────────────────────────────────────────────────────────────────────
 app.post('/api/orders', async (req, res) => {
+  if (!dbCheck(res)) return;
   try {
     const { customer_name, phone, address, items, sauce, total, notes } = req.body;
     const result = await pool.query(
@@ -68,6 +86,7 @@ app.post('/api/orders', async (req, res) => {
 });
 
 app.get('/api/orders', async (req, res) => {
+  if (!dbCheck(res)) return;
   try {
     const result = await pool.query('SELECT * FROM orders ORDER BY created_at DESC');
     res.json(result.rows);
@@ -77,6 +96,7 @@ app.get('/api/orders', async (req, res) => {
 });
 
 app.patch('/api/orders/:id/status', async (req, res) => {
+  if (!dbCheck(res)) return;
   try {
     const { status } = req.body;
     const result = await pool.query(
@@ -91,6 +111,7 @@ app.patch('/api/orders/:id/status', async (req, res) => {
 
 // ── EVENTS ────────────────────────────────────────────────────────────────────
 app.post('/api/events', async (req, res) => {
+  if (!dbCheck(res)) return;
   try {
     const { contact_name, phone, event_type, event_date, location, start_time, end_time, participants, service, notes } = req.body;
     const result = await pool.query(
@@ -106,6 +127,7 @@ app.post('/api/events', async (req, res) => {
 });
 
 app.get('/api/events', async (req, res) => {
+  if (!dbCheck(res)) return;
   try {
     const result = await pool.query('SELECT * FROM events ORDER BY created_at DESC');
     res.json(result.rows);
@@ -115,6 +137,7 @@ app.get('/api/events', async (req, res) => {
 });
 
 app.patch('/api/events/:id/status', async (req, res) => {
+  if (!dbCheck(res)) return;
   try {
     const { status } = req.body;
     const result = await pool.query(
@@ -129,6 +152,9 @@ app.patch('/api/events/:id/status', async (req, res) => {
 
 // ── STATS ─────────────────────────────────────────────────────────────────────
 app.get('/api/stats', async (req, res) => {
+  if (!pool) {
+    return res.json({ total_orders: 0, total_events: 0, total_revenue: 0, pending_orders: 0 });
+  }
   try {
     const [orders, events, revenue, pending] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM orders'),
@@ -137,9 +163,9 @@ app.get('/api/stats', async (req, res) => {
       pool.query("SELECT COUNT(*) FROM orders WHERE status='pendente'")
     ]);
     res.json({
-      total_orders: parseInt(orders.rows[0].count),
-      total_events: parseInt(events.rows[0].count),
-      total_revenue: parseInt(revenue.rows[0].total),
+      total_orders:   parseInt(orders.rows[0].count),
+      total_events:   parseInt(events.rows[0].count),
+      total_revenue:  parseInt(revenue.rows[0].total),
       pending_orders: parseInt(pending.rows[0].count)
     });
   } catch (err) {
@@ -156,7 +182,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, async () => {
-  await initDB();
-  console.log(`🚀 Hola Churros server on port ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`🚀 Hola Churros a correr na porta ${PORT}`);
+  initDB();
 });

@@ -740,13 +740,52 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 900px) {
-      .section-wrap { padding: 0 24px; }
-      nav { padding: 0 24px; }
+      .section-wrap { padding: 0 20px; }
+      nav { padding: 0 20px; }
       .nav-links { display: none; }
-      #hero { grid-template-columns: 1fr; min-height: auto; }
-      .hero-left { padding: 60px 24px 40px; }
-      .hero-right { height: 60vw; }
+
+      /* Hero mobile — centrado */
+      #hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding-top: 72px;
+      }
+      .hero-left {
+        padding: 48px 24px 36px;
+        align-items: center;
+        text-align: center;
+      }
+      #heroLogoImg {
+        width: clamp(160px, 55vw, 240px) !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        margin-bottom: 28px !important;
+      }
+      .hero-label {
+        justify-content: center;
+      }
+      .hero-label::before { display: none; }
+      .hero-h1 {
+        font-size: clamp(44px, 11vw, 72px);
+      }
+      .hero-body {
+        max-width: 100%;
+        font-size: 16px;
+      }
+      .hero-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .hero-stats {
+        justify-content: center;
+        gap: 28px;
+        margin-top: 40px;
+      }
+      .hero-stats > div { text-align: center; }
+      .hero-right { height: 55vw; }
       .hero-scroll-line { display: none; }
+
+      /* Menu */
       .menu-espanhois { grid-template-columns: 1fr; }
       .menu-photo-cell { height: 260px; grid-row: span 1; }
       .menu-recheados { grid-template-columns: 1fr; }
@@ -755,14 +794,24 @@
       .gourmet-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
       .gourmet-tile:first-child { grid-column: 1; grid-row: auto; }
       .gourmet-tile { height: 260px; }
+
+      /* Delivery */
       #delivery { grid-template-columns: 1fr; padding: 60px 24px; gap: 40px; }
       .delivery-right { grid-template-columns: 1fr 1fr; }
+
+      /* Order */
       .order-layout { grid-template-columns: 1fr; gap: 40px; }
       .order-left { display: none; }
+
+      /* Footer */
       footer { grid-template-columns: 1fr; padding: 48px 24px; }
-      .foot-bottom { padding: 20px 24px; flex-direction: column; gap: 8px; }
+      .foot-bottom { padding: 20px 24px; flex-direction: column; gap: 8px; text-align: center; }
       .form-body { padding: 28px 20px; }
       .f-row { grid-template-columns: 1fr; }
+
+      /* Section headers centrados no mobile */
+      .section-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+      .section-note { text-align: left; max-width: 100%; }
     }
   </style>
 </head>
@@ -780,6 +829,7 @@
     <ul class="nav-links">
       <li><a href="#menu">Menu</a></li>
       <li><a href="#order">Encomendas</a></li>
+      <li><a href="#eventos">Eventos</a></li>
       <li><a href="#delivery">Delivery</a></li>
       <li><a href="#footer-info">Contacto</a></li>
     </ul>
@@ -1066,6 +1116,170 @@
     </div>
   </section>
 
+  <!-- EVENTOS -->
+  <section id="eventos" style="padding:120px 0; background:var(--cream);">
+    <div class="section-wrap">
+      <div class="section-header r">
+        <div>
+          <div class="section-tag">Eventos &amp; Catering</div>
+          <h2 class="section-h2">Leve os churros<br/><em>ao seu evento.</em></h2>
+        </div>
+        <div class="section-note">Festas, casamentos, corporativos e muito mais</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:80px;align-items:start;" class="eventos-layout">
+        <!-- Left info -->
+        <div class="r">
+          <div style="display:flex;flex-direction:column;gap:28px;margin-bottom:48px;">
+            <div style="display:flex;gap:20px;align-items:flex-start;">
+              <div style="font-size:32px;">🎉</div>
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--brown);margin-bottom:4px;">Festas &amp; Aniversários</div>
+                <div style="font-size:13px;color:var(--muted);line-height:1.5;">Churros frescos e quentes servidos na hora para os seus convidados.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:20px;align-items:flex-start;">
+              <div style="font-size:32px;">💼</div>
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--brown);margin-bottom:4px;">Eventos Corporativos</div>
+                <div style="font-size:13px;color:var(--muted);line-height:1.5;">Coffe breaks e cocktails com serviço profissional e apresentação elegante.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:20px;align-items:flex-start;">
+              <div style="font-size:32px;">💍</div>
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--brown);margin-bottom:4px;">Casamentos &amp; Celebrações</div>
+                <div style="font-size:13px;color:var(--muted);line-height:1.5;">Estação de churros como atração única e memorável para o seu dia especial.</div>
+              </div>
+            </div>
+          </div>
+          <div style="background:var(--brown);padding:28px;color:var(--cream);">
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber);margin-bottom:12px;">Serviços disponíveis</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:center;gap:12px;font-size:14px;">
+                <span style="color:var(--gold);">✓</span> Só Churros
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;font-size:14px;">
+                <span style="color:var(--gold);">✓</span> Churros + Sorvete
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;font-size:14px;">
+                <span style="color:var(--gold);">✓</span> Churros + Café
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Event form -->
+        <div class="r">
+          <div class="order-form-wrap" id="eventFormWrap">
+            <div style="padding:20px 44px;border-bottom:1px solid rgba(61,30,8,0.1);">
+              <div style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--brown);">Solicitar Cotação de Evento</div>
+            </div>
+            <div class="form-body" id="eventFormBody">
+              <div id="eventSuccess" style="display:none;text-align:center;padding:40px 20px;">
+                <div style="font-size:48px;margin-bottom:16px;">🎉</div>
+                <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:var(--brown);margin-bottom:12px;">Pedido enviado!</div>
+                <div style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px;">Recebemos a sua solicitação. Entraremos em contacto pelo WhatsApp em breve.</div>
+                <button onclick="resetEventForm()" class="btn-fill">Novo Pedido</button>
+              </div>
+              <div id="eventFormFields">
+                <div class="f-row">
+                  <div class="f-group">
+                    <label class="f-label">Nome de contacto</label>
+                    <input class="f-input" id="ev_name" placeholder="O seu nome" />
+                  </div>
+                  <div class="f-group">
+                    <label class="f-label">WhatsApp / Telefone</label>
+                    <input class="f-input" id="ev_phone" placeholder="84 000 0000" />
+                  </div>
+                </div>
+
+                <div class="f-row">
+                  <div class="f-group">
+                    <label class="f-label">Tipo de Evento</label>
+                    <select class="f-select" id="ev_type">
+                      <option value="">Selecionar...</option>
+                      <option>Aniversário</option>
+                      <option>Casamento</option>
+                      <option>Evento Corporativo</option>
+                      <option>Festa Infantil</option>
+                      <option>Coffe Break</option>
+                      <option>Formatura</option>
+                      <option>Outro</option>
+                    </select>
+                  </div>
+                  <div class="f-group">
+                    <label class="f-label">Data do Evento</label>
+                    <input class="f-input" id="ev_date" type="date" />
+                  </div>
+                </div>
+
+                <div class="f-group">
+                  <label class="f-label">Local do Evento</label>
+                  <input class="f-input" id="ev_location" placeholder="Nome do espaço ou morada" />
+                </div>
+
+                <div class="f-row">
+                  <div class="f-group">
+                    <label class="f-label">Hora de Início</label>
+                    <input class="f-input" id="ev_start" type="time" />
+                  </div>
+                  <div class="f-group">
+                    <label class="f-label">Hora de Término</label>
+                    <input class="f-input" id="ev_end" type="time" />
+                  </div>
+                </div>
+
+                <div class="f-group">
+                  <label class="f-label">Número de Participantes</label>
+                  <input class="f-input" id="ev_participants" type="number" min="1" placeholder="Ex: 50" />
+                </div>
+
+                <div class="f-group">
+                  <label class="f-label">Serviço desejado</label>
+                  <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:14px;border:1px solid rgba(61,30,8,0.12);transition:all 0.2s;" id="svc_churros_lbl">
+                      <input type="radio" name="ev_service" value="Só Churros" style="accent-color:var(--brown);width:16px;height:16px;" onchange="highlightService()" />
+                      <span style="font-size:14px;font-weight:600;color:var(--brown);">🥐 Só Churros</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:14px;border:1px solid rgba(61,30,8,0.12);transition:all 0.2s;" id="svc_ice_lbl">
+                      <input type="radio" name="ev_service" value="Churros + Sorvete" style="accent-color:var(--brown);width:16px;height:16px;" onchange="highlightService()" />
+                      <span style="font-size:14px;font-weight:600;color:var(--brown);">🍦 Churros + Sorvete</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:14px;border:1px solid rgba(61,30,8,0.12);transition:all 0.2s;" id="svc_coffee_lbl">
+                      <input type="radio" name="ev_service" value="Churros + Café" style="accent-color:var(--brown);width:16px;height:16px;" onchange="highlightService()" />
+                      <span style="font-size:14px;font-weight:600;color:var(--brown);">☕ Churros + Café</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="f-group">
+                  <label class="f-label">Observações <span style="font-weight:400;opacity:.6;">(opcional)</span></label>
+                  <textarea class="f-textarea" id="ev_notes" placeholder="Tema, pedidos especiais, alergias..." style="min-height:70px;"></textarea>
+                </div>
+
+                <div id="evFormError" style="display:none;color:#c0392b;font-size:13px;font-weight:600;padding:12px;background:rgba(192,57,43,0.07);border:1px solid rgba(192,57,43,0.2);margin-bottom:16px;"></div>
+
+                <div class="form-actions">
+                  <button class="btn-wa" onclick="submitEvent()" id="evSubmitBtn" style="flex:1;">
+                    <svg width="18" height="18" viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/></svg>
+                    Enviar Solicitação
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    @media(max-width:900px){
+      .eventos-layout { grid-template-columns: 1fr !important; }
+    }
+  </style>
+
   <!-- FOOTER -->
   <footer id="footer-info">
     <div class="foot-brand">
@@ -1082,6 +1296,7 @@
         <li><a href="#menu">Churros Espanhóis</a></li>
         <li><a href="#menu">Churros Recheados</a></li>
         <li><a href="#menu">Vitrine Gourmet</a></li>
+        <li><a href="#eventos">Eventos &amp; Catering</a></li>
       </ul>
     </div>
     <div class="foot-col">
@@ -1143,7 +1358,7 @@
         return Object.keys(e).length === 0;
       };
 
-      const sendWA = () => {
+      const sendWA = async () => {
         const hasEsp = items.some(p=>p.group==="esp");
         let msg = `*¡Hola Churros! — Nova Encomenda*\n\n`;
         msg += `👤 *${name}*\n📱 ${phone}\n📍 ${addr}\n\n`;
@@ -1154,6 +1369,21 @@
         if (hasEsp) msg += `\n🍯 Molho: ${sauce}`;
         msg += `\n\n*Total: ${total.toLocaleString()} MT*`;
         if (notes.trim()) msg += `\n\n📝 ${notes}`;
+
+        // Save to database (fire-and-forget)
+        try {
+          await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              customer_name: name, phone, address: addr,
+              items: items.map(p=>({id:p.id,name:p.name,desc:p.desc,price:p.price,qty:cart[p.id]})),
+              sauce: hasEsp ? sauce : null,
+              total, notes
+            })
+          });
+        } catch(e) { console.warn('Falha ao guardar pedido:', e); }
+
         window.open(`https://wa.me/258852690365?text=${encodeURIComponent(msg)}`,"_blank");
       };
 
@@ -1307,6 +1537,86 @@
     ReactDOM.createRoot(document.getElementById("orderFormMount")).render(<Form />);
   </script>
 
+  <!-- EVENT FORM LOGIC -->
+  <script>
+    function highlightService() {
+      ['svc_churros_lbl','svc_ice_lbl','svc_coffee_lbl'].forEach(id => {
+        const lbl = document.getElementById(id);
+        if (!lbl) return;
+        const radio = lbl.querySelector('input[type=radio]');
+        lbl.style.borderColor = radio.checked ? 'var(--brown)' : 'rgba(61,30,8,0.12)';
+        lbl.style.background  = radio.checked ? 'var(--warm)'  : '';
+      });
+    }
+
+    async function submitEvent() {
+      const btn = document.getElementById('evSubmitBtn');
+      const errEl = document.getElementById('evFormError');
+      errEl.style.display = 'none';
+
+      const name         = document.getElementById('ev_name').value.trim();
+      const phone        = document.getElementById('ev_phone').value.trim();
+      const event_type   = document.getElementById('ev_type').value;
+      const event_date   = document.getElementById('ev_date').value;
+      const location     = document.getElementById('ev_location').value.trim();
+      const start_time   = document.getElementById('ev_start').value;
+      const end_time     = document.getElementById('ev_end').value;
+      const participants = document.getElementById('ev_participants').value;
+      const notes        = document.getElementById('ev_notes').value.trim();
+      const serviceEl    = document.querySelector('input[name="ev_service"]:checked');
+      const service      = serviceEl ? serviceEl.value : '';
+
+      if (!name || !phone || !event_type || !event_date || !location || !start_time || !end_time || !participants || !service) {
+        errEl.textContent = 'Por favor preencha todos os campos obrigatórios.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'A enviar...';
+
+      try {
+        const res = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contact_name: name, phone, event_type, event_date, location, start_time, end_time, participants: parseInt(participants), service, notes })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          // Send WhatsApp
+          const msg = `*¡Hola Churros! — Pedido de Evento*\n\n👤 *${name}*\n📱 ${phone}\n\n🎉 *Tipo:* ${event_type}\n📅 *Data:* ${event_date}\n📍 *Local:* ${location}\n⏰ *Horário:* ${start_time} — ${end_time}\n👥 *Participantes:* ${participants}\n🛎️ *Serviço:* ${service}${notes ? `\n\n📝 ${notes}` : ''}`;
+          window.open(`https://wa.me/258852690365?text=${encodeURIComponent(msg)}`, '_blank');
+          document.getElementById('eventFormFields').style.display = 'none';
+          document.getElementById('eventSuccess').style.display = 'block';
+        } else {
+          throw new Error(data.error || 'Erro desconhecido');
+        }
+      } catch(err) {
+        errEl.textContent = 'Erro ao enviar. Tente novamente ou contacte-nos pelo WhatsApp.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/></svg> Enviar Solicitação`;
+      }
+    }
+
+    function resetEventForm() {
+      document.getElementById('ev_name').value = '';
+      document.getElementById('ev_phone').value = '';
+      document.getElementById('ev_type').value = '';
+      document.getElementById('ev_date').value = '';
+      document.getElementById('ev_location').value = '';
+      document.getElementById('ev_start').value = '';
+      document.getElementById('ev_end').value = '';
+      document.getElementById('ev_participants').value = '';
+      document.getElementById('ev_notes').value = '';
+      document.querySelectorAll('input[name="ev_service"]').forEach(r => r.checked = false);
+      highlightService();
+      document.getElementById('eventFormFields').style.display = 'block';
+      document.getElementById('eventSuccess').style.display = 'none';
+    }
+  </script>
+
   <script>
     /* ── CURSOR ── */
     const dot  = document.getElementById("cursorDot");
@@ -1354,12 +1664,12 @@
         }
 
         // Hero logo: shrink + fade out as user scrolls
-        const startSize = Math.min(280, window.innerWidth * 0.18);
+        const isMobile = window.innerWidth <= 900;
         const scale = 1 - progress * 0.35;
         const opacity = 1 - progress * 1.4;
         heroImg.style.transform = `scale(${Math.max(0.65, scale)})`;
         heroImg.style.opacity   = Math.max(0, opacity);
-        heroImg.style.transformOrigin = "left center";
+        heroImg.style.transformOrigin = isMobile ? "center center" : "left center";
       }
 
       window.addEventListener("scroll", update, { passive: true });
