@@ -12,46 +12,92 @@
       theme: {
         extend: {
           colors: {
-            ink:    '#1c1008',
-            brown:  '#3D1E08',
-            amber:  '#C8960C',
-            gold:   '#F5C518',
-            cream:  '#FBF5E6',
-            warm:   '#F0E6C8',
-            muted:  '#8C7045',
+            ink:   '#1c1008', brown: '#3D1E08', amber: '#C8960C',
+            gold:  '#F5C518', cream: '#FBF5E6', warm:  '#F0E6C8', muted: '#8C7045',
           },
-          fontFamily: {
-            serif: ['Playfair Display', 'serif'],
-            sans:  ['DM Sans', 'sans-serif'],
-          }
+          fontFamily: { serif: ['Playfair Display','serif'], sans: ['DM Sans','sans-serif'] }
         }
       }
     }
   </script>
   <style>
     body { font-family: 'DM Sans', sans-serif; }
-    .badge-pendente   { background:#FEF3C7;color:#92400E; }
-    .badge-confirmado { background:#D1FAE5;color:#065F46; }
-    .badge-entregue   { background:#DBEAFE;color:#1E40AF; }
-    .badge-cancelado  { background:#FEE2E2;color:#991B1B; }
+    .badge-pendente   { background:#FEF3C7; color:#92400E; }
+    .badge-confirmado { background:#D1FAE5; color:#065F46; }
+    .badge-entregue   { background:#DBEAFE; color:#1E40AF; }
+    .badge-cancelado  { background:#FEE2E2; color:#991B1B; }
+
+    /* ── Card layout for mobile ── */
+    .order-card, .event-card {
+      background: #fff;
+      border: 1px solid rgba(61,30,8,0.1);
+      padding: 16px;
+      margin-bottom: 10px;
+    }
+    .card-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+      gap: 8px;
+    }
+    .card-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #8C7045;
+      flex-shrink: 0;
+      min-width: 72px;
+    }
+    .card-value {
+      font-size: 13px;
+      color: #1c1008;
+      text-align: right;
+      word-break: break-word;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(61,30,8,0.08);
+    }
+    .card-id {
+      font-family: monospace;
+      font-size: 12px;
+      color: #8C7045;
+    }
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(61,30,8,0.08);
+      flex-wrap: wrap;
+    }
   </style>
 </head>
 <body class="bg-cream min-h-screen font-sans">
 
   <!-- LOGIN OVERLAY -->
-  <div id="loginOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 backdrop-blur-sm">
-    <div class="bg-cream p-10 w-full max-w-sm shadow-2xl">
+  <div id="loginOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 backdrop-blur-sm px-4">
+    <div class="bg-cream p-8 w-full max-w-sm shadow-2xl">
       <div class="text-center mb-8">
         <div class="font-serif text-3xl font-bold text-brown italic mb-1">¡Hola Churros!</div>
         <div class="text-xs font-semibold tracking-widest uppercase text-muted">Dashboard Admin</div>
       </div>
       <div class="mb-4">
         <label class="block text-xs font-bold tracking-widest uppercase text-brown mb-2">Senha</label>
-        <input id="pwInput" type="password" class="w-full bg-warm border border-brown/20 px-4 py-3 text-ink outline-none focus:border-amber" placeholder="••••••••"
-          onkeydown="if(event.key==='Enter') checkLogin()" />
+        <input id="pwInput" type="password"
+          class="w-full bg-warm border border-brown/20 px-4 py-3 text-ink outline-none focus:border-amber"
+          placeholder="••••••••" onkeydown="if(event.key==='Enter') checkLogin()" />
       </div>
       <div id="loginErr" class="hidden text-red-600 text-xs font-semibold mb-3">Senha incorrecta.</div>
-      <button onclick="checkLogin()" class="w-full bg-brown text-gold py-3 text-sm font-bold tracking-widest uppercase hover:bg-ink transition-colors">
+      <button onclick="checkLogin()"
+        class="w-full bg-brown text-gold py-3 text-sm font-bold tracking-widest uppercase hover:bg-ink transition-colors">
         Entrar
       </button>
     </div>
@@ -61,58 +107,60 @@
   <div id="dashMain" class="hidden">
 
     <!-- TOP NAV -->
-    <nav class="bg-brown text-cream px-6 py-4 flex items-center justify-between shadow-lg">
-      <div class="flex items-center gap-4">
-        <span class="font-serif text-gold text-xl font-bold italic">¡Hola Churros!</span>
-        <span class="text-xs text-cream/40 font-semibold tracking-widest uppercase">Dashboard</span>
+    <nav class="bg-brown text-cream px-4 md:px-6 py-3 flex items-center justify-between shadow-lg sticky top-0 z-10">
+      <div class="flex items-center gap-2 md:gap-4">
+        <span class="font-serif text-gold text-lg md:text-xl font-bold italic">¡Hola Churros!</span>
+        <span class="hidden md:inline text-xs text-cream/40 font-semibold tracking-widest uppercase">Dashboard</span>
       </div>
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3 md:gap-4">
         <a href="/" class="text-xs font-semibold tracking-widest uppercase text-cream/60 hover:text-gold transition-colors">← Site</a>
         <button onclick="logout()" class="text-xs font-semibold tracking-widest uppercase text-cream/60 hover:text-red-400 transition-colors">Sair</button>
       </div>
     </nav>
 
-    <!-- STATS CARDS -->
-    <div class="max-w-7xl mx-auto px-6 py-8">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="statsGrid">
-        <div class="bg-white border border-brown/10 p-6">
-          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-2">Total Pedidos</div>
-          <div class="font-serif text-4xl font-bold text-brown" id="statOrders">—</div>
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-6">
+
+      <!-- STATS CARDS -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="bg-white border border-brown/10 p-4 md:p-6">
+          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-1 md:mb-2">Total Pedidos</div>
+          <div class="font-serif text-3xl md:text-4xl font-bold text-brown" id="statOrders">—</div>
         </div>
-        <div class="bg-white border border-brown/10 p-6">
-          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-2">Pedidos Pendentes</div>
-          <div class="font-serif text-4xl font-bold text-amber" id="statPending">—</div>
+        <div class="bg-white border border-brown/10 p-4 md:p-6">
+          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-1 md:mb-2">Pendentes</div>
+          <div class="font-serif text-3xl md:text-4xl font-bold text-amber" id="statPending">—</div>
         </div>
-        <div class="bg-white border border-brown/10 p-6">
-          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-2">Receita Total</div>
-          <div class="font-serif text-4xl font-bold text-brown" id="statRevenue">—</div>
+        <div class="bg-white border border-brown/10 p-4 md:p-6">
+          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-1 md:mb-2">Receita</div>
+          <div class="font-serif text-2xl md:text-4xl font-bold text-brown leading-tight" id="statRevenue">—</div>
         </div>
-        <div class="bg-white border border-brown/10 p-6">
-          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-2">Eventos</div>
-          <div class="font-serif text-4xl font-bold text-brown" id="statEvents">—</div>
+        <div class="bg-white border border-brown/10 p-4 md:p-6">
+          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-1 md:mb-2">Eventos</div>
+          <div class="font-serif text-3xl md:text-4xl font-bold text-brown" id="statEvents">—</div>
         </div>
       </div>
 
       <!-- TABS -->
-      <div class="flex border-b border-brown/10 mb-6">
-        <button id="tabOrders" onclick="showTab('orders')" class="px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 border-amber text-brown">
-          Pedidos Delivery
+      <div class="flex border-b border-brown/10 mb-5">
+        <button id="tabOrders" onclick="showTab('orders')"
+          class="flex-1 md:flex-none px-4 md:px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 border-amber text-brown">
+          Delivery
         </button>
-        <button id="tabEvents" onclick="showTab('events')" class="px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 border-transparent text-muted hover:text-brown transition-colors">
+        <button id="tabEvents" onclick="showTab('events')"
+          class="flex-1 md:flex-none px-4 md:px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 border-transparent text-muted hover:text-brown transition-colors">
           Eventos
         </button>
       </div>
 
-      <!-- ORDERS TABLE -->
+      <!-- ORDERS PANEL -->
       <div id="panelOrders">
         <div class="flex items-center justify-between mb-4">
-          <div class="text-xs font-bold tracking-widest uppercase text-muted">
-            <span id="ordersCount">0</span> pedidos
-          </div>
+          <div class="text-xs font-bold tracking-widest uppercase text-muted"><span id="ordersCount">0</span> pedidos</div>
           <button onclick="loadOrders()" class="text-xs font-semibold tracking-widest uppercase text-muted hover:text-brown transition-colors">↻ Actualizar</button>
         </div>
 
-        <div class="bg-white border border-brown/10 overflow-hidden">
+        <!-- Desktop table (hidden on mobile) -->
+        <div class="hidden md:block bg-white border border-brown/10 overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
@@ -121,31 +169,34 @@
                   <th class="text-left px-4 py-3">Cliente</th>
                   <th class="text-left px-4 py-3">Telefone</th>
                   <th class="text-left px-4 py-3">Pedido</th>
-                  <th class="text-left px-4 py-3">Molho</th>
                   <th class="text-right px-4 py-3">Total</th>
                   <th class="text-left px-4 py-3">Data</th>
                   <th class="text-left px-4 py-3">Status</th>
                   <th class="text-left px-4 py-3">Ação</th>
                 </tr>
               </thead>
-              <tbody id="ordersBody">
-                <tr><td colspan="9" class="text-center py-12 text-muted text-xs">A carregar...</td></tr>
+              <tbody id="ordersBodyDesktop">
+                <tr><td colspan="8" class="text-center py-12 text-muted text-xs">A carregar...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
+
+        <!-- Mobile cards (hidden on desktop) -->
+        <div class="md:hidden" id="ordersBodyMobile">
+          <div class="text-center py-8 text-muted text-xs">A carregar...</div>
+        </div>
       </div>
 
-      <!-- EVENTS TABLE -->
+      <!-- EVENTS PANEL -->
       <div id="panelEvents" class="hidden">
         <div class="flex items-center justify-between mb-4">
-          <div class="text-xs font-bold tracking-widest uppercase text-muted">
-            <span id="eventsCount">0</span> eventos
-          </div>
+          <div class="text-xs font-bold tracking-widest uppercase text-muted"><span id="eventsCount">0</span> eventos</div>
           <button onclick="loadEvents()" class="text-xs font-semibold tracking-widest uppercase text-muted hover:text-brown transition-colors">↻ Actualizar</button>
         </div>
 
-        <div class="bg-white border border-brown/10 overflow-hidden">
+        <!-- Desktop table -->
+        <div class="hidden md:block bg-white border border-brown/10 overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
@@ -155,7 +206,6 @@
                   <th class="text-left px-4 py-3">Telefone</th>
                   <th class="text-left px-4 py-3">Tipo</th>
                   <th class="text-left px-4 py-3">Data</th>
-                  <th class="text-left px-4 py-3">Local</th>
                   <th class="text-left px-4 py-3">Horário</th>
                   <th class="text-right px-4 py-3">Pessoas</th>
                   <th class="text-left px-4 py-3">Serviço</th>
@@ -163,13 +213,19 @@
                   <th class="text-left px-4 py-3">Ação</th>
                 </tr>
               </thead>
-              <tbody id="eventsBody">
-                <tr><td colspan="11" class="text-center py-12 text-muted text-xs">A carregar...</td></tr>
+              <tbody id="eventsBodyDesktop">
+                <tr><td colspan="10" class="text-center py-12 text-muted text-xs">A carregar...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
+
+        <!-- Mobile cards -->
+        <div class="md:hidden" id="eventsBodyMobile">
+          <div class="text-center py-8 text-muted text-xs">A carregar...</div>
+        </div>
       </div>
+
     </div>
   </div>
 
@@ -199,14 +255,14 @@
       currentTab = tab;
       document.getElementById('panelOrders').classList.toggle('hidden', tab !== 'orders');
       document.getElementById('panelEvents').classList.toggle('hidden', tab !== 'events');
-      document.getElementById('tabOrders').className = `px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 ${tab==='orders' ? 'border-amber text-brown' : 'border-transparent text-muted hover:text-brown'} transition-colors`;
-      document.getElementById('tabEvents').className = `px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 ${tab==='events' ? 'border-amber text-brown' : 'border-transparent text-muted hover:text-brown'} transition-colors`;
+      const base = 'flex-1 md:flex-none px-4 md:px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 transition-colors';
+      document.getElementById('tabOrders').className = base + (tab==='orders' ? ' border-amber text-brown' : ' border-transparent text-muted hover:text-brown');
+      document.getElementById('tabEvents').className = base + (tab==='events' ? ' border-amber text-brown' : ' border-transparent text-muted hover:text-brown');
     }
 
     async function loadStats() {
       try {
-        const res = await fetch('/api/stats');
-        const d = await res.json();
+        const d = await fetch('/api/stats').then(r=>r.json());
         document.getElementById('statOrders').textContent  = d.total_orders;
         document.getElementById('statPending').textContent = d.pending_orders;
         document.getElementById('statRevenue').textContent = Number(d.total_revenue).toLocaleString() + ' MT';
@@ -216,16 +272,14 @@
 
     function badgeHtml(status) {
       const map = { pendente:'badge-pendente', confirmado:'badge-confirmado', entregue:'badge-entregue', cancelado:'badge-cancelado' };
-      const cls = map[status] || 'badge-pendente';
-      return `<span class="inline-block px-2 py-1 text-xs font-bold rounded ${cls} capitalize">${status}</span>`;
+      return `<span class="inline-block px-2 py-1 text-xs font-bold rounded ${map[status]||'badge-pendente'} capitalize">${status}</span>`;
     }
 
     function statusSelect(id, current, type) {
-      const opts = ['pendente','confirmado','entregue','cancelado'].map(s =>
-        `<option value="${s}" ${s===current?'selected':''}>${s}</option>`
-      ).join('');
+      const opts = ['pendente','confirmado','entregue','cancelado']
+        .map(s => `<option value="${s}" ${s===current?'selected':''}>${s}</option>`).join('');
       return `<select onchange="updateStatus('${type}',${id},this.value)"
-        class="text-xs border border-brown/20 bg-cream px-2 py-1 outline-none focus:border-amber cursor-pointer">
+        class="text-xs border border-brown/20 bg-cream px-2 py-1 outline-none focus:border-amber cursor-pointer w-full">
         ${opts}
       </select>`;
     }
@@ -233,97 +287,198 @@
     async function updateStatus(type, id, status) {
       try {
         await fetch(`/api/${type}/${id}/status`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          method:'PATCH', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ status })
         });
         loadStats();
       } catch(e) { alert('Erro ao actualizar status'); }
     }
 
-    function whatsappBtn(phone, msg) {
-      return `<a href="https://wa.me/258${phone.replace(/\D/g,'').replace(/^258/,'')}?text=${encodeURIComponent(msg)}" target="_blank"
-        class="inline-flex items-center gap-1 text-xs font-semibold text-green-700 hover:text-green-900 transition-colors">
-        <svg width="14" height="14" viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/></svg>
+    function waLink(phone, msg) {
+      const num = phone.replace(/\D/g,'').replace(/^258/,'');
+      return `<a href="https://wa.me/258${num}?text=${encodeURIComponent(msg)}" target="_blank"
+        class="inline-flex items-center gap-1 text-xs font-semibold text-green-700 hover:text-green-900 transition-colors whitespace-nowrap">
+        <svg width="13" height="13" viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/></svg>
         WhatsApp
       </a>`;
     }
 
     async function loadOrders() {
       try {
-        const res = await fetch('/api/orders');
-        const orders = await res.json();
+        const orders = await fetch('/api/orders').then(r=>r.json());
         document.getElementById('ordersCount').textContent = orders.length;
-        const tbody = document.getElementById('ordersBody');
+
         if (!orders.length) {
-          tbody.innerHTML = '<tr><td colspan="9" class="text-center py-12 text-muted text-xs">Nenhum pedido ainda.</td></tr>';
+          const empty = '<tr><td colspan="8" class="text-center py-12 text-muted text-xs">Nenhum pedido ainda.</td></tr>';
+          document.getElementById('ordersBodyDesktop').innerHTML = empty;
+          document.getElementById('ordersBodyMobile').innerHTML = '<div class="text-center py-8 text-muted text-xs">Nenhum pedido ainda.</div>';
           return;
         }
-        tbody.innerHTML = orders.map(o => {
+
+        // Desktop rows
+        document.getElementById('ordersBodyDesktop').innerHTML = orders.map(o => {
           const items = Array.isArray(o.items) ? o.items : [];
-          const itemStr = items.map(i => `${i.name.replace('Churros ','').replace('Espanhóis','Esp.').replace('Recheados','Rech.')} ×${i.qty}`).join(', ');
-          const date = new Date(o.created_at).toLocaleDateString('pt-MZ', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-          const wamsg = `Olá ${o.customer_name}, confirmamos o seu pedido #${o.id} de ${Number(o.total).toLocaleString()} MT. Em breve receberá a entrega! — ¡Hola Churros! 🥐`;
+          const itemStr = items.map(i => {
+            const name = (i.name||'').replace('Churros ','').replace('Espanhóis','Esp.').replace('Recheados','Rech.');
+            const sauce = i.sauce ? ` (${i.sauce})` : '';
+            return name + sauce;
+          }).join(', ');
+          const date = new Date(o.created_at).toLocaleDateString('pt-MZ',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+          const wamsg = `Olá ${o.customer_name}, confirmamos o seu pedido #${o.id} de ${Number(o.total).toLocaleString()} MT. Em breve receberá a entrega! — Hola Churros`;
           return `<tr class="border-b border-brown/5 hover:bg-warm/30 transition-colors">
             <td class="px-4 py-3 text-muted font-mono text-xs">#${o.id}</td>
-            <td class="px-4 py-3 font-semibold text-ink">${o.customer_name}</td>
+            <td class="px-4 py-3 font-semibold text-ink text-sm">${o.customer_name}</td>
             <td class="px-4 py-3 text-muted text-xs">${o.phone}</td>
-            <td class="px-4 py-3 text-xs max-w-[180px]">
-              <div class="truncate text-ink">${itemStr || '—'}</div>
-              ${o.address ? `<div class="text-muted truncate mt-0.5">${o.address}</div>` : ''}
+            <td class="px-4 py-3 text-xs max-w-[200px]">
+              <div class="text-ink" style="white-space:normal;line-height:1.5">${itemStr||'—'}</div>
+              ${o.address?`<div class="text-muted truncate mt-0.5">${o.address}</div>`:''}
             </td>
-            <td class="px-4 py-3 text-xs text-muted">${o.sauce || '—'}</td>
             <td class="px-4 py-3 text-right font-serif font-bold text-brown whitespace-nowrap">${Number(o.total).toLocaleString()} MT</td>
             <td class="px-4 py-3 text-xs text-muted whitespace-nowrap">${date}</td>
             <td class="px-4 py-3">${badgeHtml(o.status)}</td>
-            <td class="px-4 py-3">
-              <div class="flex flex-col gap-1">
+            <td class="px-4 py-3 min-w-[140px]">
+              <div class="flex flex-col gap-1.5">
                 ${statusSelect(o.id, o.status, 'orders')}
-                ${whatsappBtn(o.phone, wamsg)}
+                ${waLink(o.phone, wamsg)}
               </div>
             </td>
           </tr>`;
         }).join('');
+
+        // Mobile cards
+        document.getElementById('ordersBodyMobile').innerHTML = orders.map(o => {
+          const items = Array.isArray(o.items) ? o.items : [];
+          const itemStr = items.map(i => {
+            const name = (i.name||'').replace('Churros ','').replace('Espanhóis','Esp.').replace('Recheados','Rech.');
+            const sauce = i.sauce ? ` (${i.sauce})` : '';
+            return name + sauce;
+          }).join(', ');
+          const date = new Date(o.created_at).toLocaleDateString('pt-MZ',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+          const wamsg = `Olá ${o.customer_name}, confirmamos o seu pedido #${o.id} de ${Number(o.total).toLocaleString()} MT. Em breve receberá a entrega! — Hola Churros`;
+          return `<div class="order-card">
+            <div class="card-header">
+              <span class="card-id">#${o.id} · ${date}</span>
+              ${badgeHtml(o.status)}
+            </div>
+            <div class="card-row">
+              <span class="card-label">Cliente</span>
+              <span class="card-value font-semibold">${o.customer_name}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Telefone</span>
+              <span class="card-value">${o.phone}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Pedido</span>
+              <span class="card-value">${itemStr||'—'}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Morada</span>
+              <span class="card-value text-muted">${o.address||'—'}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Total</span>
+              <span class="card-value font-serif font-bold text-brown text-base">${Number(o.total).toLocaleString()} MT</span>
+            </div>
+            <div class="card-actions">
+              <div class="flex-1">${statusSelect(o.id, o.status, 'orders')}</div>
+              ${waLink(o.phone, wamsg)}
+            </div>
+          </div>`;
+        }).join('');
+
       } catch(e) {
-        document.getElementById('ordersBody').innerHTML = '<tr><td colspan="9" class="text-center py-12 text-red-500 text-xs">Erro ao carregar pedidos.</td></tr>';
+        const err = '<div class="text-center py-8 text-red-500 text-xs">Erro ao carregar.</div>';
+        document.getElementById('ordersBodyDesktop').innerHTML = `<tr><td colspan="8" class="text-center py-12 text-red-500 text-xs">Erro ao carregar.</td></tr>`;
+        document.getElementById('ordersBodyMobile').innerHTML = err;
       }
     }
 
     async function loadEvents() {
       try {
-        const res = await fetch('/api/events');
-        const events = await res.json();
+        const events = await fetch('/api/events').then(r=>r.json());
         document.getElementById('eventsCount').textContent = events.length;
-        const tbody = document.getElementById('eventsBody');
+
         if (!events.length) {
-          tbody.innerHTML = '<tr><td colspan="11" class="text-center py-12 text-muted text-xs">Nenhum evento ainda.</td></tr>';
+          document.getElementById('eventsBodyDesktop').innerHTML = '<tr><td colspan="10" class="text-center py-12 text-muted text-xs">Nenhum evento ainda.</td></tr>';
+          document.getElementById('eventsBodyMobile').innerHTML = '<div class="text-center py-8 text-muted text-xs">Nenhum evento ainda.</div>';
           return;
         }
-        tbody.innerHTML = events.map(e => {
-          const date = new Date(e.event_date + 'T12:00:00').toLocaleDateString('pt-MZ', {day:'2-digit',month:'2-digit',year:'numeric'});
-          const created = new Date(e.created_at).toLocaleDateString('pt-MZ', {day:'2-digit',month:'2-digit'});
-          const wamsg = `Olá ${e.contact_name}! Recebemos o pedido para o seu ${e.event_type} em ${date}. Vamos entrar em contacto brevemente para confirmar os detalhes. — ¡Hola Churros! 🥐`;
+
+        // Desktop rows
+        document.getElementById('eventsBodyDesktop').innerHTML = events.map(e => {
+          const date = new Date(e.event_date+'T12:00:00').toLocaleDateString('pt-MZ',{day:'2-digit',month:'2-digit',year:'numeric'});
+          const wamsg = `Olá ${e.contact_name}! Recebemos o pedido para o seu ${e.event_type} em ${date}. Vamos entrar em contacto brevemente para confirmar os detalhes. — Hola Churros`;
           return `<tr class="border-b border-brown/5 hover:bg-warm/30 transition-colors">
             <td class="px-4 py-3 text-muted font-mono text-xs">#${e.id}</td>
-            <td class="px-4 py-3 font-semibold text-ink">${e.contact_name}</td>
-            <td class="px-4 py-3 text-muted text-xs">${e.phone}</td>
+            <td class="px-4 py-3 font-semibold text-ink text-sm">${e.contact_name}</td>
+            <td class="px-4 py-3 text-xs text-muted">${e.phone}</td>
             <td class="px-4 py-3 text-xs font-semibold text-brown">${e.event_type}</td>
-            <td class="px-4 py-3 text-xs text-ink whitespace-nowrap">${date}</td>
-            <td class="px-4 py-3 text-xs text-muted max-w-[120px]"><div class="truncate">${e.location}</div></td>
+            <td class="px-4 py-3 text-xs whitespace-nowrap">${date}</td>
             <td class="px-4 py-3 text-xs text-muted whitespace-nowrap">${e.start_time?.slice(0,5)} — ${e.end_time?.slice(0,5)}</td>
-            <td class="px-4 py-3 text-right font-semibold text-ink">${e.participants}</td>
-            <td class="px-4 py-3 text-xs text-ink">${e.service}</td>
+            <td class="px-4 py-3 text-right font-semibold">${e.participants}</td>
+            <td class="px-4 py-3 text-xs">${e.service}</td>
             <td class="px-4 py-3">${badgeHtml(e.status)}</td>
-            <td class="px-4 py-3">
-              <div class="flex flex-col gap-1">
+            <td class="px-4 py-3 min-w-[140px]">
+              <div class="flex flex-col gap-1.5">
                 ${statusSelect(e.id, e.status, 'events')}
-                ${whatsappBtn(e.phone, wamsg)}
+                ${waLink(e.phone, wamsg)}
               </div>
             </td>
           </tr>`;
         }).join('');
-      } catch(err) {
-        document.getElementById('eventsBody').innerHTML = '<tr><td colspan="11" class="text-center py-12 text-red-500 text-xs">Erro ao carregar eventos.</td></tr>';
+
+        // Mobile cards
+        document.getElementById('eventsBodyMobile').innerHTML = events.map(e => {
+          const date = new Date(e.event_date+'T12:00:00').toLocaleDateString('pt-MZ',{day:'2-digit',month:'2-digit',year:'numeric'});
+          const wamsg = `Olá ${e.contact_name}! Recebemos o pedido para o seu ${e.event_type} em ${date}. Vamos entrar em contacto brevemente para confirmar os detalhes. — Hola Churros`;
+          return `<div class="event-card">
+            <div class="card-header">
+              <span class="card-id">#${e.id}</span>
+              ${badgeHtml(e.status)}
+            </div>
+            <div class="card-row">
+              <span class="card-label">Contacto</span>
+              <span class="card-value font-semibold">${e.contact_name}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Telefone</span>
+              <span class="card-value">${e.phone}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Tipo</span>
+              <span class="card-value font-semibold text-brown">${e.event_type}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Data</span>
+              <span class="card-value">${date}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Horário</span>
+              <span class="card-value">${e.start_time?.slice(0,5)} — ${e.end_time?.slice(0,5)}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Local</span>
+              <span class="card-value text-muted">${e.location}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Pessoas</span>
+              <span class="card-value font-semibold">${e.participants}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Serviço</span>
+              <span class="card-value">${e.service}</span>
+            </div>
+            <div class="card-actions">
+              <div class="flex-1">${statusSelect(e.id, e.status, 'events')}</div>
+              ${waLink(e.phone, wamsg)}
+            </div>
+          </div>`;
+        }).join('');
+
+      } catch(e) {
+        document.getElementById('eventsBodyDesktop').innerHTML = '<tr><td colspan="10" class="text-center py-12 text-red-500 text-xs">Erro ao carregar.</td></tr>';
+        document.getElementById('eventsBodyMobile').innerHTML = '<div class="text-center py-8 text-red-500 text-xs">Erro ao carregar.</div>';
       }
     }
   </script>
