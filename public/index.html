@@ -1283,7 +1283,7 @@
   <!-- FOOTER -->
   <footer id="footer-info">
     <div class="foot-brand">
-      <img src="uploads/Hola Churros Logo.png" alt="¡Hola Churros!" style="height:72px;width:auto;object-fit:contain;display:block;margin-bottom:16px;" />
+      <img src="uploads/Hola Churros Logo.png" alt="¡Hola Churros!" id="footerLogo" style="height:72px;width:auto;object-fit:contain;display:block;margin-bottom:16px;cursor:pointer;" />
       <p class="foot-tagline">Churreirira Artesanal em Maputo desde 2020. Feitos com paixão, entregues com calor.</p>
       <div class="foot-social">
         <a href="https://instagram.com/holachurrosmz">Instagram</a>
@@ -1675,6 +1675,23 @@
       window.addEventListener("scroll", update, { passive: true });
       window.addEventListener("resize", update);
       update();
+    })();
+  </script>
+
+  <script>
+    /* ── DASHBOARD EASTER EGG — clicar no logo do footer 5× ── */
+    (function() {
+      var clicks = 0, timer;
+      document.getElementById('footerLogo').addEventListener('click', function() {
+        clicks++;
+        clearTimeout(timer);
+        if (clicks >= 5) {
+          clicks = 0;
+          window.location.href = '/dashboard';
+        } else {
+          timer = setTimeout(function() { clicks = 0; }, 2000);
+        }
+      });
     })();
   </script>
 
