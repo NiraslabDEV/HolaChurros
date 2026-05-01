@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — ¡Hola Churros!</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink:    '#1c1008',
+            brown:  '#3D1E08',
+            amber:  '#C8960C',
+            gold:   '#F5C518',
+            cream:  '#FBF5E6',
+            warm:   '#F0E6C8',
+            muted:  '#8C7045',
+          },
+          fontFamily: {
+            serif: ['Playfair Display', 'serif'],
+            sans:  ['DM Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    .badge-pendente   { background:#FEF3C7;color:#92400E; }
+    .badge-confirmado { background:#D1FAE5;color:#065F46; }
+    .badge-entregue   { background:#DBEAFE;color:#1E40AF; }
+    .badge-cancelado  { background:#FEE2E2;color:#991B1B; }
+  </style>
+</head>
+<body class="bg-cream min-h-screen font-sans">
+
+  <!-- LOGIN OVERLAY -->
+  <div id="loginOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 backdrop-blur-sm">
+    <div class="bg-cream p-10 w-full max-w-sm shadow-2xl">
+      <div class="text-center mb-8">
+        <div class="font-serif text-3xl font-bold text-brown italic mb-1">¡Hola Churros!</div>
+        <div class="text-xs font-semibold tracking-widest uppercase text-muted">Dashboard Admin</div>
+      </div>
+      <div class="mb-4">
+        <label class="block text-xs font-bold tracking-widest uppercase text-brown mb-2">Senha</label>
+        <input id="pwInput" type="password" class="w-full bg-warm border border-brown/20 px-4 py-3 text-ink outline-none focus:border-amber" placeholder="••••••••"
+          onkeydown="if(event.key==='Enter') checkLogin()" />
+      </div>
+      <div id="loginErr" class="hidden text-red-600 text-xs font-semibold mb-3">Senha incorrecta.</div>
+      <button onclick="checkLogin()" class="w-full bg-brown text-gold py-3 text-sm font-bold tracking-widest uppercase hover:bg-ink transition-colors">
+        Entrar
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN DASHBOARD -->
+  <div id="dashMain" class="hidden">
+
+    <!-- TOP NAV -->
+    <nav class="bg-brown text-cream px-6 py-4 flex items-center justify-between shadow-lg">
+      <div class="flex items-center gap-4">
+        <span class="font-serif text-gold text-xl font-bold italic">¡Hola Churros!</span>
+        <span class="text-xs text-cream/40 font-semibold tracking-widest uppercase">Dashboard</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/" class="text-xs font-semibold tracking-widest uppercase text-cream/60 hover:text-gold transition-colors">← Site</a>
+        <button onclick="logout()" class="text-xs font-semibold tracking-widest uppercase text-cream/60 hover:text-red-400 transition-colors">Sair</button>
+      </div>
+    </nav>
+
+    <!-- STATS CARDS -->
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="statsGrid">
+        <div class="bg-white border border-brown/10 p-6">
+          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-2">Total Pedidos</div>
+          <div class="font-serif text-4xl font-bold text-brown" id="statOrders">—</div>
+        </div>
+        <div class="bg-white border border-brown/10 p-6">
+          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-2">Pedidos Pendentes</div>
+          <div class="font-serif text-4xl font-bold text-amber" id="statPending">—</div>
+        </div>
+        <div class="bg-white border border-brown/10 p-6">
+          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-2">Receita Total</div>
+          <div class="font-serif text-4xl font-bold text-brown" id="statRevenue">—</div>
+        </div>
+        <div class="bg-white border border-brown/10 p-6">
+          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-2">Eventos</div>
+          <div class="font-serif text-4xl font-bold text-brown" id="statEvents">—</div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="flex border-b border-brown/10 mb-6">
+        <button id="tabOrders" onclick="showTab('orders')" class="px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 border-amber text-brown">
+          Pedidos Delivery
+        </button>
+        <button id="tabEvents" onclick="showTab('events')" class="px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 border-transparent text-muted hover:text-brown transition-colors">
+          Eventos
+        </button>
+      </div>
+
+      <!-- ORDERS TABLE -->
+      <div id="panelOrders">
+        <div class="flex items-center justify-between mb-4">
+          <div class="text-xs font-bold tracking-widest uppercase text-muted">
+            <span id="ordersCount">0</span> pedidos
+          </div>
+          <button onclick="loadOrders()" class="text-xs font-semibold tracking-widest uppercase text-muted hover:text-brown transition-colors">↻ Actualizar</button>
+        </div>
+
+        <div class="bg-white border border-brown/10 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-warm border-b border-brown/10 text-xs font-bold tracking-widest uppercase text-muted">
+                  <th class="text-left px-4 py-3">#</th>
+                  <th class="text-left px-4 py-3">Cliente</th>
+                  <th class="text-left px-4 py-3">Telefone</th>
+                  <th class="text-left px-4 py-3">Pedido</th>
+                  <th class="text-left px-4 py-3">Molho</th>
+                  <th class="text-right px-4 py-3">Total</th>
+                  <th class="text-left px-4 py-3">Data</th>
+                  <th class="text-left px-4 py-3">Status</th>
+                  <th class="text-left px-4 py-3">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="ordersBody">
+                <tr><td colspan="9" class="text-center py-12 text-muted text-xs">A carregar...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVENTS TABLE -->
+      <div id="panelEvents" class="hidden">
+        <div class="flex items-center justify-between mb-4">
+          <div class="text-xs font-bold tracking-widest uppercase text-muted">
+            <span id="eventsCount">0</span> eventos
+          </div>
+          <button onclick="loadEvents()" class="text-xs font-semibold tracking-widest uppercase text-muted hover:text-brown transition-colors">↻ Actualizar</button>
+        </div>
+
+        <div class="bg-white border border-brown/10 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-warm border-b border-brown/10 text-xs font-bold tracking-widest uppercase text-muted">
+                  <th class="text-left px-4 py-3">#</th>
+                  <th class="text-left px-4 py-3">Contacto</th>
+                  <th class="text-left px-4 py-3">Telefone</th>
+                  <th class="text-left px-4 py-3">Tipo</th>
+                  <th class="text-left px-4 py-3">Data</th>
+                  <th class="text-left px-4 py-3">Local</th>
+                  <th class="text-left px-4 py-3">Horário</th>
+                  <th class="text-right px-4 py-3">Pessoas</th>
+                  <th class="text-left px-4 py-3">Serviço</th>
+                  <th class="text-left px-4 py-3">Status</th>
+                  <th class="text-left px-4 py-3">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="eventsBody">
+                <tr><td colspan="11" class="text-center py-12 text-muted text-xs">A carregar...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PASS = 'churros2025';
+    let currentTab = 'orders';
+
+    function checkLogin() {
+      const pw = document.getElementById('pwInput').value;
+      if (pw === PASS) {
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('dashMain').classList.remove('hidden');
+        loadStats(); loadOrders(); loadEvents();
+        setInterval(() => { loadStats(); if(currentTab==='orders') loadOrders(); else loadEvents(); }, 30000);
+      } else {
+        document.getElementById('loginErr').classList.remove('hidden');
+      }
+    }
+
+    function logout() {
+      document.getElementById('loginOverlay').style.display = 'flex';
+      document.getElementById('dashMain').classList.add('hidden');
+      document.getElementById('pwInput').value = '';
+    }
+
+    function showTab(tab) {
+      currentTab = tab;
+      document.getElementById('panelOrders').classList.toggle('hidden', tab !== 'orders');
+      document.getElementById('panelEvents').classList.toggle('hidden', tab !== 'events');
+      document.getElementById('tabOrders').className = `px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 ${tab==='orders' ? 'border-amber text-brown' : 'border-transparent text-muted hover:text-brown'} transition-colors`;
+      document.getElementById('tabEvents').className = `px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 ${tab==='events' ? 'border-amber text-brown' : 'border-transparent text-muted hover:text-brown'} transition-colors`;
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/stats');
+        const d = await res.json();
+        document.getElementById('statOrders').textContent  = d.total_orders;
+        document.getElementById('statPending').textContent = d.pending_orders;
+        document.getElementById('statRevenue').textContent = Number(d.total_revenue).toLocaleString() + ' MT';
+        document.getElementById('statEvents').textContent  = d.total_events;
+      } catch(e) { console.error(e); }
+    }
+
+    function badgeHtml(status) {
+      const map = { pendente:'badge-pendente', confirmado:'badge-confirmado', entregue:'badge-entregue', cancelado:'badge-cancelado' };
+      const cls = map[status] || 'badge-pendente';
+      return `<span class="inline-block px-2 py-1 text-xs font-bold rounded ${cls} capitalize">${status}</span>`;
+    }
+
+    function statusSelect(id, current, type) {
+      const opts = ['pendente','confirmado','entregue','cancelado'].map(s =>
+        `<option value="${s}" ${s===current?'selected':''}>${s}</option>`
+      ).join('');
+      return `<select onchange="updateStatus('${type}',${id},this.value)"
+        class="text-xs border border-brown/20 bg-cream px-2 py-1 outline-none focus:border-amber cursor-pointer">
+        ${opts}
+      </select>`;
+    }
+
+    async function updateStatus(type, id, status) {
+      try {
+        await fetch(`/api/${type}/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+        loadStats();
+      } catch(e) { alert('Erro ao actualizar status'); }
+    }
+
+    function whatsappBtn(phone, msg) {
+      return `<a href="https://wa.me/258${phone.replace(/\D/g,'').replace(/^258/,'')}?text=${encodeURIComponent(msg)}" target="_blank"
+        class="inline-flex items-center gap-1 text-xs font-semibold text-green-700 hover:text-green-900 transition-colors">
+        <svg width="14" height="14" viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/></svg>
+        WhatsApp
+      </a>`;
+    }
+
+    async function loadOrders() {
+      try {
+        const res = await fetch('/api/orders');
+        const orders = await res.json();
+        document.getElementById('ordersCount').textContent = orders.length;
+        const tbody = document.getElementById('ordersBody');
+        if (!orders.length) {
+          tbody.innerHTML = '<tr><td colspan="9" class="text-center py-12 text-muted text-xs">Nenhum pedido ainda.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = orders.map(o => {
+          const items = Array.isArray(o.items) ? o.items : [];
+          const itemStr = items.map(i => `${i.name.replace('Churros ','').replace('Espanhóis','Esp.').replace('Recheados','Rech.')} ×${i.qty}`).join(', ');
+          const date = new Date(o.created_at).toLocaleDateString('pt-MZ', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+          const wamsg = `Olá ${o.customer_name}, confirmamos o seu pedido #${o.id} de ${Number(o.total).toLocaleString()} MT. Em breve receberá a entrega! — ¡Hola Churros! 🥐`;
+          return `<tr class="border-b border-brown/5 hover:bg-warm/30 transition-colors">
+            <td class="px-4 py-3 text-muted font-mono text-xs">#${o.id}</td>
+            <td class="px-4 py-3 font-semibold text-ink">${o.customer_name}</td>
+            <td class="px-4 py-3 text-muted text-xs">${o.phone}</td>
+            <td class="px-4 py-3 text-xs max-w-[180px]">
+              <div class="truncate text-ink">${itemStr || '—'}</div>
+              ${o.address ? `<div class="text-muted truncate mt-0.5">${o.address}</div>` : ''}
+            </td>
+            <td class="px-4 py-3 text-xs text-muted">${o.sauce || '—'}</td>
+            <td class="px-4 py-3 text-right font-serif font-bold text-brown whitespace-nowrap">${Number(o.total).toLocaleString()} MT</td>
+            <td class="px-4 py-3 text-xs text-muted whitespace-nowrap">${date}</td>
+            <td class="px-4 py-3">${badgeHtml(o.status)}</td>
+            <td class="px-4 py-3">
+              <div class="flex flex-col gap-1">
+                ${statusSelect(o.id, o.status, 'orders')}
+                ${whatsappBtn(o.phone, wamsg)}
+              </div>
+            </td>
+          </tr>`;
+        }).join('');
+      } catch(e) {
+        document.getElementById('ordersBody').innerHTML = '<tr><td colspan="9" class="text-center py-12 text-red-500 text-xs">Erro ao carregar pedidos.</td></tr>';
+      }
+    }
+
+    async function loadEvents() {
+      try {
+        const res = await fetch('/api/events');
+        const events = await res.json();
+        document.getElementById('eventsCount').textContent = events.length;
+        const tbody = document.getElementById('eventsBody');
+        if (!events.length) {
+          tbody.innerHTML = '<tr><td colspan="11" class="text-center py-12 text-muted text-xs">Nenhum evento ainda.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = events.map(e => {
+          const date = new Date(e.event_date + 'T12:00:00').toLocaleDateString('pt-MZ', {day:'2-digit',month:'2-digit',year:'numeric'});
+          const created = new Date(e.created_at).toLocaleDateString('pt-MZ', {day:'2-digit',month:'2-digit'});
+          const wamsg = `Olá ${e.contact_name}! Recebemos o pedido para o seu ${e.event_type} em ${date}. Vamos entrar em contacto brevemente para confirmar os detalhes. — ¡Hola Churros! 🥐`;
+          return `<tr class="border-b border-brown/5 hover:bg-warm/30 transition-colors">
+            <td class="px-4 py-3 text-muted font-mono text-xs">#${e.id}</td>
+            <td class="px-4 py-3 font-semibold text-ink">${e.contact_name}</td>
+            <td class="px-4 py-3 text-muted text-xs">${e.phone}</td>
+            <td class="px-4 py-3 text-xs font-semibold text-brown">${e.event_type}</td>
+            <td class="px-4 py-3 text-xs text-ink whitespace-nowrap">${date}</td>
+            <td class="px-4 py-3 text-xs text-muted max-w-[120px]"><div class="truncate">${e.location}</div></td>
+            <td class="px-4 py-3 text-xs text-muted whitespace-nowrap">${e.start_time?.slice(0,5)} — ${e.end_time?.slice(0,5)}</td>
+            <td class="px-4 py-3 text-right font-semibold text-ink">${e.participants}</td>
+            <td class="px-4 py-3 text-xs text-ink">${e.service}</td>
+            <td class="px-4 py-3">${badgeHtml(e.status)}</td>
+            <td class="px-4 py-3">
+              <div class="flex flex-col gap-1">
+                ${statusSelect(e.id, e.status, 'events')}
+                ${whatsappBtn(e.phone, wamsg)}
+              </div>
+            </td>
+          </tr>`;
+        }).join('');
+      } catch(err) {
+        document.getElementById('eventsBody').innerHTML = '<tr><td colspan="11" class="text-center py-12 text-red-500 text-xs">Erro ao carregar eventos.</td></tr>';
+      }
+    }
+  </script>
+</body>
+</html>

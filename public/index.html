@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>¡Hola Churros! — Churreirira Artesanal · Maputo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --ink:    #1c1008;
+      --brown:  #3D1E08;
+      --amber:  #C8960C;
+      --gold:   #F5C518;
+      --cream:  #FBF5E6;
+      --warm:   #F0E6C8;
+      --muted:  #8C7045;
+      --white:  #FFFDF7;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--white);
+      color: var(--ink);
+      overflow-x: hidden;
+    }
+
+    /* ── CURSOR DOT ── */
+    .cursor-dot {
+      width: 10px; height: 10px;
+      background: var(--gold);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: transform 0.08s, width 0.2s, height 0.2s, opacity 0.2s;
+      mix-blend-mode: multiply;
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1.5px solid var(--amber);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%,-50%);
+      transition: transform 0.18s cubic-bezier(.25,.46,.45,.94), width 0.3s, height 0.3s;
+      opacity: 0.5;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 52px;
+      height: 72px;
+      background: rgba(251,245,230,0);
+      backdrop-filter: blur(0px);
+      border-bottom: 1px solid rgba(200,150,12,0);
+      transition: background 0.4s, backdrop-filter 0.4s, border-color 0.4s, height 0.4s;
+    }
+    nav.scrolled {
+      background: rgba(251,245,230,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(200,150,12,0.15);
+      height: 64px;
+    }
+
+    .nav-wordmark {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 900;
+      font-size: 22px;
+      color: var(--brown);
+      letter-spacing: -0.01em;
+      text-decoration: none;
+    }
+
+    /* Nav logo shrinks on scroll */
+    .nav-logo-link img {
+      transition: height 0.4s cubic-bezier(.25,.46,.45,.94), opacity 0.4s;
+    }
+    nav:not(.scrolled) .nav-logo-link img {
+      height: 0px !important;
+      opacity: 0;
+      pointer-events: none;
+    }
+    nav.scrolled .nav-logo-link img {
+      height: 52px !important;
+      opacity: 1;
+    }
+
+    /* Nav links hidden until scrolled */
+    nav:not(.scrolled) .nav-links a,
+    nav:not(.scrolled) .nav-order-btn {
+      color: rgba(61,30,8,0);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s, color 0.3s;
+    }
+    nav.scrolled .nav-links a,
+    nav.scrolled .nav-order-btn {
+      opacity: 1;
+      pointer-events: auto;
+      transition: opacity 0.4s 0.1s, color 0.2s;
+    }
+
+    /* Hero logo — big, centered overlay */
+    .hero-logo-overlay {
+      display: none;
+    }
+
+    .nav-links {
+      display: flex; gap: 40px; list-style: none;
+    }
+    .nav-links a {
+      font-size: 13px; font-weight: 500; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--muted);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--brown); }
+
+    .nav-order-btn {
+      background: var(--brown);
+      color: var(--gold);
+      border: none; border-radius: 2px;
+      padding: 11px 24px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .nav-order-btn:hover { background: var(--ink); transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding-top: 72px;
+      background: var(--cream);
+    }
+
+    .hero-left {
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 80px 64px 80px 80px;
+      position: relative;
+    }
+
+    .hero-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--amber);
+      margin-bottom: 28px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .hero-label::before {
+      content: ''; display: block;
+      width: 32px; height: 1px; background: var(--amber);
+    }
+
+    .hero-h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(52px, 5.5vw, 88px);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      color: var(--brown);
+      margin-bottom: 32px;
+    }
+    .hero-h1 em {
+      font-style: italic;
+      color: var(--amber);
+    }
+
+    .hero-body {
+      font-size: 17px; font-weight: 300; line-height: 1.7;
+      color: var(--muted); max-width: 400px; margin-bottom: 52px;
+    }
+
+    .hero-actions {
+      display: flex; gap: 16px; align-items: center;
+    }
+
+    .btn-fill {
+      background: var(--brown); color: var(--gold);
+      padding: 16px 36px; border: none; border-radius: 2px;
+      font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-fill:hover { background: var(--ink); transform: translateY(-2px); }
+
+    .btn-ghost {
+      background: transparent; color: var(--brown);
+      padding: 15px 28px; border: 1px solid rgba(61,30,8,0.25);
+      border-radius: 2px; font-size: 13px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-ghost:hover { border-color: var(--brown); background: rgba(61,30,8,0.04); }
+
+    .hero-stats {
+      margin-top: 64px; display: flex; gap: 40px;
+      border-top: 1px solid rgba(61,30,8,0.1);
+      padding-top: 32px;
+    }
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px; font-weight: 900; color: var(--brown);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 11px; font-weight: 500; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--muted); margin-top: 4px;
+    }
+
+    .hero-right {
+      position: relative; overflow: hidden;
+    }
+    .hero-right img {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block;
+      transform: scale(1.04);
+      transition: transform 8s ease;
+    }
+    .hero-right:hover img { transform: scale(1.0); }
+
+    .hero-right-badge {
+      position: absolute; bottom: 40px; left: 40px;
+      background: var(--brown); color: var(--gold);
+      padding: 16px 22px; border-radius: 2px;
+      font-family: 'Playfair Display', serif;
+      font-style: italic; font-size: 15px;
+    }
+
+    .hero-scroll-line {
+      position: absolute; bottom: 0; left: 80px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      font-size: 10px; font-weight: 600; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted);
+      transform: rotate(90deg) translateY(50%);
+      transform-origin: bottom left;
+    }
+    .hero-scroll-line::after {
+      content: ''; display: block;
+      width: 48px; height: 1px; background: var(--muted);
+      animation: lineGrow 2s ease infinite;
+    }
+    @keyframes lineGrow {
+      0%,100%{width:24px;opacity:.4} 50%{width:48px;opacity:1}
+    }
+
+    /* ── MARQUEE STRIP ── */
+    .marquee-strip {
+      background: var(--brown); overflow: hidden;
+      padding: 14px 0; border-top: none;
+    }
+    .marquee-track {
+      display: flex; gap: 0; white-space: nowrap;
+      animation: marquee 22s linear infinite;
+    }
+    .marquee-item {
+      font-family: 'Playfair Display', serif;
+      font-style: italic; font-size: 15px;
+      color: var(--gold); padding: 0 40px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .marquee-item::after {
+      content: '·'; font-style: normal;
+      color: var(--amber); font-size: 24px;
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ── SECTION WRAPPER ── */
+    .section-wrap {
+      max-width: 1280px; margin: 0 auto; padding: 0 80px;
+    }
+
+    .section-header {
+      display: flex; justify-content: space-between;
+      align-items: flex-end; margin-bottom: 52px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(61,30,8,0.1);
+    }
+    .section-tag {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--amber); margin-bottom: 10px;
+    }
+    .section-h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(32px, 3.5vw, 52px);
+      font-weight: 900; line-height: 1;
+      letter-spacing: -0.02em; color: var(--brown);
+    }
+    .section-note {
+      font-size: 14px; color: var(--muted); font-weight: 400; max-width: 220px;
+      text-align: right; line-height: 1.5;
+    }
+
+    /* ── MENU SECTION ── */
+    #menu { padding: 120px 0; background: var(--white); }
+
+    /* Espanhóis — editorial layout */
+    .menu-espanhois {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      grid-template-rows: auto;
+      gap: 1px;
+      background: rgba(61,30,8,0.1);
+      border: 1px solid rgba(61,30,8,0.1);
+      margin-bottom: 80px;
+      overflow: hidden;
+    }
+
+    .menu-photo-cell {
+      grid-row: span 3;
+      overflow: hidden; position: relative;
+    }
+    .menu-photo-cell img {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block; transition: transform 0.7s cubic-bezier(.25,.46,.45,.94);
+    }
+    .menu-photo-cell:hover img { transform: scale(1.05); }
+
+    .menu-item-cell {
+      background: var(--white); padding: 36px 40px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      transition: background 0.2s;
+      cursor: default; min-height: 160px;
+    }
+    .menu-item-cell:hover { background: var(--cream); }
+
+    .menu-item-cell.highlight {
+      background: var(--brown); color: var(--gold);
+    }
+    .menu-item-cell.highlight .price-tag { color: var(--cream); }
+    .menu-item-cell.highlight .qty-label { color: rgba(251,245,230,0.6); }
+
+    .qty-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+    }
+    .item-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px; font-weight: 700; line-height: 1.1;
+      color: var(--brown);
+    }
+    .menu-item-cell.highlight .item-title { color: var(--gold); }
+
+    .price-tag {
+      font-family: 'Playfair Display', serif;
+      font-size: 42px; font-weight: 900;
+      color: var(--brown); line-height: 1;
+    }
+    .price-tag span {
+      font-size: 16px; font-weight: 400; font-family: 'DM Sans', sans-serif;
+      color: var(--muted); vertical-align: middle; margin-left: 4px;
+    }
+    .menu-item-cell.highlight .price-tag span { color: rgba(251,245,230,0.55); }
+
+    .sauce-chips {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;
+    }
+    .sauce-chip {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 5px 12px; border-radius: 1px;
+      border: 1px solid rgba(61,30,8,0.18);
+      color: var(--muted); background: transparent;
+    }
+    .menu-item-cell.highlight .sauce-chip {
+      border-color: rgba(245,197,24,0.3); color: rgba(245,197,24,0.7);
+    }
+
+    /* Recheados */
+    .menu-recheados {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1px; background: rgba(61,30,8,0.1);
+      border: 1px solid rgba(61,30,8,0.1);
+      overflow: hidden; margin-bottom: 80px;
+    }
+    .rechado-card {
+      background: var(--cream); display: grid;
+      grid-template-columns: 1fr 200px;
+      transition: background 0.2s;
+    }
+    .rechado-card:hover { background: var(--warm); }
+
+    .rechado-info { padding: 44px 40px; }
+    .rechado-img { overflow: hidden; }
+    .rechado-img img { width:100%; height:100%; object-fit:cover; display:block; transition: transform 0.6s; }
+    .rechado-card:hover .rechado-img img { transform: scale(1.07); }
+
+    /* Gourmet */
+    .gourmet-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: 340px 220px;
+      gap: 8px;
+    }
+    .gourmet-tile {
+      position: relative; overflow: hidden; border-radius: 2px;
+    }
+    .gourmet-tile:first-child {
+      grid-column: 1 / 3; grid-row: 1 / 3;
+    }
+    .gourmet-tile img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.7s cubic-bezier(.25,.46,.45,.94);
+    }
+    .gourmet-tile:hover img { transform: scale(1.06); }
+    .gourmet-tile-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, rgba(28,16,8,0.85) 0%, transparent 100%);
+      padding: 32px 28px 22px;
+    }
+    .gourmet-tile-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px; font-weight: 700;
+      color: var(--gold); line-height: 1;
+    }
+    .gourmet-tile:first-child .gourmet-tile-name { font-size: 38px; }
+    .gourmet-tile-note {
+      font-size: 12px; color: rgba(251,245,230,0.6);
+      margin-top: 4px; font-weight: 400;
+    }
+    .gourmet-tile-only {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--amber); color: var(--ink);
+      font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; padding: 5px 10px;
+      border-radius: 1px; margin-top: 10px;
+    }
+
+    /* ── DELIVERY BANNER ── */
+    #delivery {
+      background: var(--brown); padding: 80px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: center;
+    }
+    .delivery-left {}
+    .delivery-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--amber); margin-bottom: 20px;
+    }
+    .delivery-h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(36px, 3.8vw, 60px); font-weight: 900;
+      line-height: 1; letter-spacing: -0.02em;
+      color: var(--gold); margin-bottom: 24px;
+    }
+    .delivery-body {
+      font-size: 16px; font-weight: 300; line-height: 1.7;
+      color: rgba(251,245,230,0.65); margin-bottom: 40px;
+    }
+    .delivery-right {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+      background: rgba(245,197,24,0.15); border: 1px solid rgba(245,197,24,0.15);
+    }
+    .info-cell {
+      padding: 32px 28px; background: rgba(28,16,8,0.3);
+      transition: background 0.2s;
+    }
+    .info-cell:hover { background: rgba(28,16,8,0.5); }
+    .info-cell-icon { font-size: 22px; margin-bottom: 12px; }
+    .info-cell-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--amber); margin-bottom: 6px;
+    }
+    .info-cell-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px; color: var(--cream); font-weight: 700; line-height: 1.3;
+    }
+
+    /* ── ORDER SECTION ── */
+    #order { padding: 120px 0; background: var(--cream); }
+
+    .order-layout {
+      display: grid; grid-template-columns: 1fr 1.2fr; gap: 80px;
+      align-items: start;
+    }
+    .order-left {}
+    .order-left-note {
+      font-size: 15px; font-weight: 300; line-height: 1.7;
+      color: var(--muted); margin-top: 24px; margin-bottom: 48px;
+    }
+    .order-trust {
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .trust-item {
+      display: flex; gap: 16px; align-items: flex-start;
+    }
+    .trust-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px; font-weight: 900; color: var(--amber);
+      line-height: 1; flex-shrink: 0; width: 36px;
+    }
+    .trust-text strong {
+      display: block; font-size: 14px; font-weight: 600; color: var(--brown); margin-bottom: 2px;
+    }
+    .trust-text span { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    /* Form */
+    .order-form-wrap {
+      background: var(--white);
+      border: 1px solid rgba(61,30,8,0.1);
+    }
+
+    .form-tabs {
+      display: flex; border-bottom: 1px solid rgba(61,30,8,0.1);
+    }
+    .form-tab {
+      flex: 1; padding: 20px;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; text-align: center;
+      color: var(--muted); cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .form-tab.active {
+      color: var(--brown);
+      border-bottom-color: var(--amber);
+      background: rgba(200,150,12,0.04);
+    }
+
+    .form-body { padding: 44px; }
+    .form-step-content { display: none; }
+    .form-step-content.active { display: block; animation: fadeSlideUp 0.35s ease both; }
+    @keyframes fadeSlideUp {
+      from { opacity:0; transform: translateY(12px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    .f-label {
+      display: block; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--brown); margin-bottom: 8px;
+    }
+    .f-input, .f-select, .f-textarea {
+      width: 100%; background: var(--cream);
+      border: 1px solid rgba(61,30,8,0.15); border-radius: 1px;
+      padding: 14px 18px; font-family: 'DM Sans', sans-serif;
+      font-size: 15px; color: var(--ink); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+    .f-input:focus, .f-select:focus, .f-textarea:focus {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 3px rgba(200,150,12,0.1);
+    }
+    .f-textarea { resize: vertical; min-height: 84px; }
+    .f-group { margin-bottom: 24px; }
+    .f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* Product selector */
+    .product-grid { display: flex; flex-direction: column; gap: 10px; }
+    .prod-row {
+      display: grid; grid-template-columns: 80px 1fr auto auto;
+      gap: 16px; align-items: center;
+      border: 1px solid rgba(61,30,8,0.1);
+      background: var(--cream); cursor: pointer; transition: all 0.18s;
+      overflow: hidden;
+    }
+    .prod-row:hover { border-color: var(--amber); background: var(--warm); }
+    .prod-row.on { border-color: var(--brown); background: var(--warm); }
+    .prod-row-img {
+      width: 80px; height: 80px; overflow: hidden; flex-shrink: 0;
+    }
+    .prod-row-img img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transition: transform 0.4s;
+    }
+    .prod-row:hover .prod-row-img img { transform: scale(1.08); }
+    .prod-row-info { padding: 16px 0; }
+    .prod-name {
+      font-size: 14px; font-weight: 600; color: var(--brown); margin-bottom: 2px;
+    }
+    .prod-desc { font-size: 12px; color: var(--muted); }
+    .prod-price {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px; font-weight: 900; color: var(--brown);
+      white-space: nowrap; padding-right: 8px;
+    }
+    .prod-qty-ctrl {
+      display: flex; align-items: center; gap: 10px; padding-right: 16px;
+    }
+    .qty-btn {
+      width: 30px; height: 30px; border-radius: 1px;
+      border: 1px solid rgba(61,30,8,0.2);
+      background: var(--white); color: var(--brown);
+      font-size: 18px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; line-height: 1;
+    }
+    .qty-btn:hover { background: var(--brown); color: var(--gold); border-color: var(--brown); }
+    .qty-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px; font-weight: 900; color: var(--brown);
+      min-width: 20px; text-align: center;
+    }
+
+    .sauce-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+    .sauce-opt {
+      padding: 14px; border: 1px solid rgba(61,30,8,0.12);
+      text-align: center; cursor: pointer; transition: all 0.18s;
+      font-size: 13px; font-weight: 600; color: var(--muted);
+    }
+    .sauce-opt:hover { border-color: var(--amber); color: var(--brown); }
+    .sauce-opt.on { border-color: var(--brown); background: var(--warm); color: var(--brown); }
+
+    .cart-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 20px; background: var(--brown); margin: 24px 0 0;
+    }
+    .cart-label { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,245,230,0.65); }
+    .cart-total { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; color: var(--gold); }
+
+    .form-actions { display: flex; gap: 12px; margin-top: 32px; }
+    .btn-back {
+      padding: 14px 24px; border: 1px solid rgba(61,30,8,0.2);
+      background: transparent; color: var(--muted);
+      font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; border-radius: 1px; transition: all 0.2s;
+    }
+    .btn-back:hover { color: var(--brown); border-color: var(--brown); }
+    .btn-next {
+      flex: 1; padding: 16px; background: var(--brown); color: var(--gold);
+      border: none; border-radius: 1px;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-next:hover { background: var(--ink); }
+    .btn-next:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-wa {
+      flex: 1; padding: 16px; background: #25D366; color: #fff;
+      border: none; border-radius: 1px;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .btn-wa:hover { background: #1db954; }
+
+    /* Summary */
+    .summary-block {
+      border: 1px solid rgba(61,30,8,0.1); padding: 28px;
+      background: var(--cream); margin-bottom: 16px;
+    }
+    .summary-head {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--amber); margin-bottom: 16px;
+    }
+    .sum-row {
+      display: flex; justify-content: space-between;
+      font-size: 14px; font-weight: 500; color: var(--muted);
+      padding: 8px 0; border-bottom: 1px solid rgba(61,30,8,0.07);
+    }
+    .sum-row:last-child { border-bottom: none; }
+    .sum-total {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-top: 16px; padding-top: 16px;
+      border-top: 1px solid rgba(61,30,8,0.15);
+    }
+    .sum-total-label {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .sum-total-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 38px; font-weight: 900; color: var(--brown);
+    }
+
+    .f-error { color: #c0392b; font-size: 12px; font-weight: 600; margin-top: 6px; display: none; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ink); color: rgba(251,245,230,0.5);
+      padding: 80px; display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 60px; border-top: 1px solid rgba(245,197,24,0.1);
+    }
+    .foot-brand {}
+    .foot-logo {
+      font-family: 'Playfair Display', serif; font-style: italic;
+      font-size: 28px; font-weight: 900; color: var(--gold);
+      margin-bottom: 16px; display: block;
+    }
+    .foot-tagline {
+      font-size: 13px; line-height: 1.6; color: rgba(251,245,230,0.45); margin-bottom: 32px;
+    }
+    .foot-social a {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: rgba(251,245,230,0.45);
+      text-decoration: none; transition: color 0.2s; margin-right: 20px;
+    }
+    .foot-social a:hover { color: var(--gold); }
+    .foot-col-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--amber); margin-bottom: 20px;
+    }
+    .foot-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .foot-col ul li a {
+      font-size: 14px; color: rgba(251,245,230,0.45);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .foot-col ul li a:hover { color: var(--cream); }
+    .foot-col .addr {
+      font-size: 14px; line-height: 1.7; color: rgba(251,245,230,0.45);
+    }
+    .foot-bottom {
+      background: var(--ink); padding: 24px 80px;
+      border-top: 1px solid rgba(245,197,24,0.08);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .foot-copy { font-size: 12px; color: rgba(251,245,230,0.25); }
+
+    /* ── REVEAL ── */
+    .r {
+      opacity: 0; transform: translateY(28px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .r.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .section-wrap { padding: 0 24px; }
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      #hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-left { padding: 60px 24px 40px; }
+      .hero-right { height: 60vw; }
+      .hero-scroll-line { display: none; }
+      .menu-espanhois { grid-template-columns: 1fr; }
+      .menu-photo-cell { height: 260px; grid-row: span 1; }
+      .menu-recheados { grid-template-columns: 1fr; }
+      .rechado-card { grid-template-columns: 1fr; }
+      .rechado-img { height: 200px; }
+      .gourmet-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+      .gourmet-tile:first-child { grid-column: 1; grid-row: auto; }
+      .gourmet-tile { height: 260px; }
+      #delivery { grid-template-columns: 1fr; padding: 60px 24px; gap: 40px; }
+      .delivery-right { grid-template-columns: 1fr 1fr; }
+      .order-layout { grid-template-columns: 1fr; gap: 40px; }
+      .order-left { display: none; }
+      footer { grid-template-columns: 1fr; padding: 48px 24px; }
+      .foot-bottom { padding: 20px 24px; flex-direction: column; gap: 8px; }
+      .form-body { padding: 28px 20px; }
+      .f-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom cursor -->
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- NAV -->
+  <nav id="mainNav">
+    <a href="#hero" class="nav-logo-link">
+      <img src="uploads/Hola Churros Logo.png" alt="¡Hola Churros!" style="height:56px;width:auto;object-fit:contain;display:block;" />
+    </a>
+    <ul class="nav-links">
+      <li><a href="#menu">Menu</a></li>
+      <li><a href="#order">Encomendas</a></li>
+      <li><a href="#eventos">Eventos</a></li>
+      <li><a href="#delivery">Delivery</a></li>
+      <li><a href="#footer-info">Contacto</a></li>
+    </ul>
+    <a href="#order" class="nav-order-btn">Encomendar</a>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-left">
+      <img src="uploads/Hola Churros Logo.png" alt="¡Hola Churros!" id="heroLogoImg" style="width: clamp(180px, 18vw, 280px); height: auto; object-fit: contain; display: block; margin-bottom: 32px; filter: drop-shadow(0 4px 16px rgba(0,0,0,0.12));" />
+      <div class="hero-label">Artesanal · Maputo · Desde 2020</div>
+      <h1 class="hero-h1">
+        Churros<br/>
+        <em>que chegam</em><br/>
+        quentes.
+      </h1>
+      <p class="hero-body">
+        Feitos à mão, fritos na hora e entregues em Maputo. Cada churro é uma promessa de crocância por fora e maciez por dentro.
+      </p>
+      <div class="hero-actions">
+        <a href="#order" class="btn-fill">Fazer Encomenda</a>
+        <a href="#menu" class="btn-ghost">Ver Menu</a>
+      </div>
+      <div class="hero-stats">
+        <div>
+          <div class="stat-num">2020</div>
+          <div class="stat-label">A servir Maputo</div>
+        </div>
+        <div>
+          <div class="stat-num">841</div>
+          <div class="stat-label">Fãs no Instagram</div>
+        </div>
+        <div>
+          <div class="stat-num">100%</div>
+          <div class="stat-label">Artesanal</div>
+        </div>
+      </div>
+      <div class="hero-scroll-line">Scroll</div>
+    </div>
+    <div class="hero-right">
+      <img
+        src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2HYcLulrE8Ojv4YQib1Hi8KQlm-gZrIKejHJhGyEJnHDkmsE3idvp1G4cpJGkFj3CqYIHzEYtG2QGVUBOC1cXqzcXOboU-rVXHWf77v_6XDmlku22Qbx-HiTj99EjhhWmTS4EXKNeDDVbCGbIG52963wy55F9-Vbi4lulEOxYpp2jrGKVgcaDBCoLy94-cExja2vhyhypqLFkkkMrATgAoQH8pCZz6RUxoUvqr8mALpQzguJasb4Rc_ErPYQcxxf7QGuNYhHHI1ir"
+        alt="Churros artesanais quentes"
+      />
+      <div class="hero-right-badge">
+        Entregamos das 14h às 18h
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee-strip">
+    <div class="marquee-track" id="marqueeTrack">
+      <span class="marquee-item">Churros Artesanais</span>
+      <span class="marquee-item">Doce de Leite</span>
+      <span class="marquee-item">Nutella</span>
+      <span class="marquee-item">Delivery em Maputo</span>
+      <span class="marquee-item">Ice Churros</span>
+      <span class="marquee-item">Coffee Churros</span>
+      <span class="marquee-item">Churros Gourmet</span>
+      <span class="marquee-item">Feitos na Hora</span>
+      <span class="marquee-item">Churros Artesanais</span>
+      <span class="marquee-item">Doce de Leite</span>
+      <span class="marquee-item">Nutella</span>
+      <span class="marquee-item">Delivery em Maputo</span>
+      <span class="marquee-item">Ice Churros</span>
+      <span class="marquee-item">Coffee Churros</span>
+      <span class="marquee-item">Churros Gourmet</span>
+      <span class="marquee-item">Feitos na Hora</span>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <section id="menu">
+    <div class="section-wrap">
+
+      <!-- Section header -->
+      <div class="section-header r">
+        <div>
+          <div class="section-tag">Cardápio</div>
+          <h2 class="section-h2">O nosso menu</h2>
+        </div>
+        <div class="section-note">Todos os Espanhóis acompanham Doce de Leite ou Nutella à escolha</div>
+      </div>
+
+      <!-- Espanhóis — editorial grid -->
+      <div style="margin-bottom: 20px;" class="r">
+        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--amber); margin-bottom: 16px;">Churros Espanhóis</div>
+      </div>
+
+      <div class="menu-espanhois r">
+        <!-- Photo column -->
+        <div class="menu-photo-cell">
+          <img
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaD6NnH6lkgWS6yotguOVWXuc4WKd2mpxRL76sYH1t-mOmZdYsfl-j1BdjyQ90pkjzxHA5c4b2kA-gRXnGd7pgUoVhCPdF9gaSfLHL3mwriPDp4kpJF9qC20iVNdyL_YrXPdbzoo9AJGOWOFZ2TVxI_hIc8z1_66hOOpx5FqzrdXxBADDPJklI9BV-Kfx2VnYj3yzQM0vgB_wMjt2fxoBTxRjF0muxj3bToRwAJLGm4VdsDq68KbGx5F4TWgqTF3goSBsaqHt6YarU"
+            alt="Churros Espanhóis"
+          />
+        </div>
+        <!-- 4 unidades -->
+        <div class="menu-item-cell">
+          <div>
+            <div class="qty-label">Porção</div>
+            <div class="item-title">4 unidades</div>
+          </div>
+          <div>
+            <div class="price-tag">250 <span>MT</span></div>
+            <div class="sauce-chips">
+              <span class="sauce-chip">Doce de Leite</span>
+              <span class="sauce-chip">Nutella</span>
+            </div>
+          </div>
+        </div>
+        <!-- 6 unidades -->
+        <div class="menu-item-cell highlight">
+          <div>
+            <div class="qty-label">Porção</div>
+            <div class="item-title">6 unidades</div>
+          </div>
+          <div>
+            <div class="price-tag">320 <span>MT</span></div>
+            <div class="sauce-chips">
+              <span class="sauce-chip">Doce de Leite</span>
+              <span class="sauce-chip">Nutella</span>
+            </div>
+          </div>
+        </div>
+        <!-- 12 unidades -->
+        <div class="menu-item-cell">
+          <div>
+            <div class="qty-label">Porção familiar</div>
+            <div class="item-title">12 unidades</div>
+          </div>
+          <div>
+            <div class="price-tag">580 <span>MT</span></div>
+            <div class="sauce-chips">
+              <span class="sauce-chip">Doce de Leite</span>
+              <span class="sauce-chip">Nutella</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recheados -->
+      <div style="margin-bottom: 20px; margin-top: 60px;" class="r">
+        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--amber); margin-bottom: 16px;">Churros Recheados</div>
+      </div>
+
+      <div class="menu-recheados r">
+        <div class="rechado-card">
+          <div class="rechado-info">
+            <div class="qty-label">Porção</div>
+            <div class="item-title" style="font-family:'Playfair Display',serif; font-size:32px; font-weight:900; color:var(--brown); margin-bottom: 12px;">4 unidades</div>
+            <div style="font-size:14px; color:var(--muted); line-height:1.6; margin-bottom: 28px;">Recheio generoso e cremoso em cada churro. Explosão de sabor à primeira dentada.</div>
+            <div class="price-tag">600 <span>MT</span></div>
+          </div>
+          <div class="rechado-img">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBI3L_-8M_pxu8ZvAq2Yhq-QL3Ne4VpvWG_TfTTo0YRSUsnIAEDtrRL96JLBupieh8mcaT0-gNcnpim9gCl-pVY-mfhK-FU6l6fan3SXEDG-ZYNBephWX2Haj2GSm5ssZQd1vI4-YNgYmPFtwLjV3x54mwZaEsHYJU8NbJxXKHekG3f8KF_SwBrQ2tsdxdtNviZ4F_NFK7huDN3iJ55U8RDcUGgch4dGghwWvoLcZOmwtovzJ3bijAGPlSLMU9EQMCqEVh-oWGAO56s" alt="Churros Recheados 4un" />
+          </div>
+        </div>
+        <div class="rechado-card">
+          <div class="rechado-info">
+            <div class="qty-label">Porção partilha</div>
+            <div class="item-title" style="font-family:'Playfair Display',serif; font-size:32px; font-weight:900; color:var(--brown); margin-bottom: 12px;">6 unidades</div>
+            <div style="font-size:14px; color:var(--muted); line-height:1.6; margin-bottom: 28px;">Para partilhar os melhores momentos. Seis razões para sorrir.</div>
+            <div class="price-tag">900 <span>MT</span></div>
+          </div>
+          <div class="rechado-img">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBI3L_-8M_pxu8ZvAq2Yhq-QL3Ne4VpvWG_TfTTo0YRSUsnIAEDtrRL96JLBupieh8mcaT0-gNcnpim9gCl-pVY-mfhK-FU6l6fan3SXEDG-ZYNBephWX2Haj2GSm5ssZQd1vI4-YNgYmPFtwLjV3x54mwZaEsHYJU8NbJxXKHekG3f8KF_SwBrQ2tsdxdtNviZ4F_NFK7huDN3iJ55U8RDcUGgch4dGghwWvoLcZOmwtovzJ3bijAGPlSLMU9EQMCqEVh-oWGAO56s" alt="Churros Recheados 6un" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Gourmet -->
+      <div style="margin-bottom: 20px; margin-top: 60px;" class="r">
+        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--amber); margin-bottom: 16px;">Vitrine Gourmet — Exclusivo na Loja</div>
+      </div>
+
+      <div class="gourmet-grid r">
+        <div class="gourmet-tile">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4-aOduVVes0D03x_G-YbSCNSR723FD16VhnuDS0B9d6B1Iij1qSAOhjOm-NwV5UFxwqJKPvbmUgcwpkA1jccvgaTifFmkWVLpliiifjnkgAUQ6UAq5QfkoeWyDXtzFUivtv2F911R50XH2fKgeK5NuMnvA9tzOeaL3UssiZoJHi7cwdjmd97Z8TixVCwlVXTct_QGufdybbWHB_zjoxIxXPigeqCFwIF1rBLstX6ZwlsVsn4K-sD8UQRPPCjkAq5DlhaxqIu-AWZy" alt="Churros Gourmet"/>
+          <div class="gourmet-tile-label">
+            <div class="gourmet-tile-name">Churros Gourmet</div>
+            <div class="gourmet-tile-note">Criações especiais da nossa cozinha</div>
+            <div class="gourmet-tile-only">Só na loja</div>
+          </div>
+        </div>
+        <div class="gourmet-tile">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBywSNl2BxMt_RWZCqChTLTXI_ED_FdeMgBXiDQnHN5MuRnhG2aSqTpfs2T-S3EabPir5r6s2Ezgz18zJ0brNVdkmloRHhKRV7iOi2hRdPFkd93fsNTpk1gTDY6Rl7TDqyzQ63gAqUBG6GOhWt0rrKFT9DFFAWdmrJdcLzlqE_fAegoHTMIbF9jNp8FL3A9HqEzTb7zBn_1d6TPCNPXElkt7TOYbgIPzhYG4Q_Q-7puvY28xL-qPQeavxFUkoR_YEN8coGf6LzLZkiR" alt="Ice Churros"/>
+          <div class="gourmet-tile-label">
+            <div class="gourmet-tile-name">Ice Churros</div>
+            <div class="gourmet-tile-note">Com gelado artesanal</div>
+          </div>
+        </div>
+        <div class="gourmet-tile">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuABWHsl6mZVkhBa9NZqAeOau0R1iTvsfS-kZI5zdaGMzgQ764VUpbT1CuxmLOGg9EXq0a5sVBLqvmax-xG4M9EjkUkjYN2GeoQ7dmp-rAXwMyUztST2_FZPLAYOQVcWVbIo99gay1rckrBtfERecTBxxv3wrmSb2JwVZW9URm454Ts0c_WrkRHuG2cSnYERalYi0ToRV9E7ETkjdEIGXjI9_ARowJKebBy2XQHmUxZA3XtWPs_7yIQoHlDEqQnO4Voq2JBFT_PENNuF" alt="Coffee Churros"/>
+          <div class="gourmet-tile-label">
+            <div class="gourmet-tile-name">Coffee Churros</div>
+            <div class="gourmet-tile-note">O par perfeito</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- DELIVERY BANNER -->
+  <section id="delivery">
+    <div class="delivery-left">
+      <div class="delivery-label">Delivery · Maputo</div>
+      <h2 class="delivery-h2">Entregamos em<br/>sua porta.</h2>
+      <p class="delivery-body">
+        Os seus churros saem frescos da frigideira e chegam quentes até si. Encomende até às 13h30 para receber ainda hoje.
+      </p>
+      <a href="#order" class="btn-fill" style="display:inline-block">Encomendar Agora</a>
+    </div>
+    <div class="delivery-right">
+      <div class="info-cell">
+        <div class="info-cell-icon">🕐</div>
+        <div class="info-cell-label">Loja aberta</div>
+        <div class="info-cell-val">Seg–Sex<br/>09:30 — 18:30</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-cell-icon">🛵</div>
+        <div class="info-cell-label">Entregas</div>
+        <div class="info-cell-val">Diariamente<br/>14:00 — 18:00</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-cell-icon">📍</div>
+        <div class="info-cell-label">Localização</div>
+        <div class="info-cell-val">Av. Amílcar Cabral, 856<br/>Maputo</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-cell-icon">📱</div>
+        <div class="info-cell-label">WhatsApp</div>
+        <div class="info-cell-val" style="color:var(--gold)">
+          <a href="https://wa.me/258852690365" style="color:var(--gold); text-decoration:none;">84 400 1932</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ORDER -->
+  <section id="order">
+    <div class="section-wrap">
+      <div class="section-header r">
+        <div>
+          <div class="section-tag">Encomendas</div>
+          <h2 class="section-h2">Encomendar</h2>
+        </div>
+        <div class="section-note">Enviamos o pedido direto para o nosso WhatsApp</div>
+      </div>
+
+      <div class="order-layout">
+        <div class="order-left r">
+          <div class="section-tag">Como funciona</div>
+          <h3 style="font-family:'Playfair Display',serif; font-size:36px; font-weight:900; color:var(--brown); line-height:1.1; letter-spacing:-0.02em;">Simples<br/><em>e rápido.</em></h3>
+          <p class="order-left-note">Escolha os churros, indique a morada e receba — frescos, quentes e irresistíveis.</p>
+          <div class="order-trust">
+            <div class="trust-item">
+              <div class="trust-num">01</div>
+              <div class="trust-text">
+                <strong>Escolha o seu pedido</strong>
+                <span>Selecione os produtos e quantidades</span>
+              </div>
+            </div>
+            <div class="trust-item">
+              <div class="trust-num">02</div>
+              <div class="trust-text">
+                <strong>Indique os seus dados</strong>
+                <span>Nome, telefone e morada de entrega</span>
+              </div>
+            </div>
+            <div class="trust-item">
+              <div class="trust-num">03</div>
+              <div class="trust-text">
+                <strong>Enviamos para WhatsApp</strong>
+                <span>O pedido chega diretamente à nossa equipa</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="r" id="orderFormMount"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVENTOS -->
+  <section id="eventos" style="padding:120px 0; background:var(--cream);">
+    <div class="section-wrap">
+      <div class="section-header r">
+        <div>
+          <div class="section-tag">Eventos &amp; Catering</div>
+          <h2 class="section-h2">Leve os churros<br/><em>ao seu evento.</em></h2>
+        </div>
+        <div class="section-note">Festas, casamentos, corporativos e muito mais</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:80px;align-items:start;" class="eventos-layout">
+        <!-- Left info -->
+        <div class="r">
+          <div style="display:flex;flex-direction:column;gap:28px;margin-bottom:48px;">
+            <div style="display:flex;gap:20px;align-items:flex-start;">
+              <div style="font-size:32px;">🎉</div>
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--brown);margin-bottom:4px;">Festas &amp; Aniversários</div>
+                <div style="font-size:13px;color:var(--muted);line-height:1.5;">Churros frescos e quentes servidos na hora para os seus convidados.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:20px;align-items:flex-start;">
+              <div style="font-size:32px;">💼</div>
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--brown);margin-bottom:4px;">Eventos Corporativos</div>
+                <div style="font-size:13px;color:var(--muted);line-height:1.5;">Coffe breaks e cocktails com serviço profissional e apresentação elegante.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:20px;align-items:flex-start;">
+              <div style="font-size:32px;">💍</div>
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--brown);margin-bottom:4px;">Casamentos &amp; Celebrações</div>
+                <div style="font-size:13px;color:var(--muted);line-height:1.5;">Estação de churros como atração única e memorável para o seu dia especial.</div>
+              </div>
+            </div>
+          </div>
+          <div style="background:var(--brown);padding:28px;color:var(--cream);">
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber);margin-bottom:12px;">Serviços disponíveis</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:center;gap:12px;font-size:14px;">
+                <span style="color:var(--gold);">✓</span> Só Churros
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;font-size:14px;">
+                <span style="color:var(--gold);">✓</span> Churros + Sorvete
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;font-size:14px;">
+                <span style="color:var(--gold);">✓</span> Churros + Café
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Event form -->
+        <div class="r">
+          <div class="order-form-wrap" id="eventFormWrap">
+            <div style="padding:20px 44px;border-bottom:1px solid rgba(61,30,8,0.1);">
+              <div style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--brown);">Solicitar Cotação de Evento</div>
+            </div>
+            <div class="form-body" id="eventFormBody">
+              <div id="eventSuccess" style="display:none;text-align:center;padding:40px 20px;">
+                <div style="font-size:48px;margin-bottom:16px;">🎉</div>
+                <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:var(--brown);margin-bottom:12px;">Pedido enviado!</div>
+                <div style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px;">Recebemos a sua solicitação. Entraremos em contacto pelo WhatsApp em breve.</div>
+                <button onclick="resetEventForm()" class="btn-fill">Novo Pedido</button>
+              </div>
+              <div id="eventFormFields">
+                <div class="f-row">
+                  <div class="f-group">
+                    <label class="f-label">Nome de contacto</label>
+                    <input class="f-input" id="ev_name" placeholder="O seu nome" />
+                  </div>
+                  <div class="f-group">
+                    <label class="f-label">WhatsApp / Telefone</label>
+                    <input class="f-input" id="ev_phone" placeholder="84 000 0000" />
+                  </div>
+                </div>
+
+                <div class="f-row">
+                  <div class="f-group">
+                    <label class="f-label">Tipo de Evento</label>
+                    <select class="f-select" id="ev_type">
+                      <option value="">Selecionar...</option>
+                      <option>Aniversário</option>
+                      <option>Casamento</option>
+                      <option>Evento Corporativo</option>
+                      <option>Festa Infantil</option>
+                      <option>Coffe Break</option>
+                      <option>Formatura</option>
+                      <option>Outro</option>
+                    </select>
+                  </div>
+                  <div class="f-group">
+                    <label class="f-label">Data do Evento</label>
+                    <input class="f-input" id="ev_date" type="date" />
+                  </div>
+                </div>
+
+                <div class="f-group">
+                  <label class="f-label">Local do Evento</label>
+                  <input class="f-input" id="ev_location" placeholder="Nome do espaço ou morada" />
+                </div>
+
+                <div class="f-row">
+                  <div class="f-group">
+                    <label class="f-label">Hora de Início</label>
+                    <input class="f-input" id="ev_start" type="time" />
+                  </div>
+                  <div class="f-group">
+                    <label class="f-label">Hora de Término</label>
+                    <input class="f-input" id="ev_end" type="time" />
+                  </div>
+                </div>
+
+                <div class="f-group">
+                  <label class="f-label">Número de Participantes</label>
+                  <input class="f-input" id="ev_participants" type="number" min="1" placeholder="Ex: 50" />
+                </div>
+
+                <div class="f-group">
+                  <label class="f-label">Serviço desejado</label>
+                  <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:14px;border:1px solid rgba(61,30,8,0.12);transition:all 0.2s;" id="svc_churros_lbl">
+                      <input type="radio" name="ev_service" value="Só Churros" style="accent-color:var(--brown);width:16px;height:16px;" onchange="highlightService()" />
+                      <span style="font-size:14px;font-weight:600;color:var(--brown);">🥐 Só Churros</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:14px;border:1px solid rgba(61,30,8,0.12);transition:all 0.2s;" id="svc_ice_lbl">
+                      <input type="radio" name="ev_service" value="Churros + Sorvete" style="accent-color:var(--brown);width:16px;height:16px;" onchange="highlightService()" />
+                      <span style="font-size:14px;font-weight:600;color:var(--brown);">🍦 Churros + Sorvete</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:14px;border:1px solid rgba(61,30,8,0.12);transition:all 0.2s;" id="svc_coffee_lbl">
+                      <input type="radio" name="ev_service" value="Churros + Café" style="accent-color:var(--brown);width:16px;height:16px;" onchange="highlightService()" />
+                      <span style="font-size:14px;font-weight:600;color:var(--brown);">☕ Churros + Café</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="f-group">
+                  <label class="f-label">Observações <span style="font-weight:400;opacity:.6;">(opcional)</span></label>
+                  <textarea class="f-textarea" id="ev_notes" placeholder="Tema, pedidos especiais, alergias..." style="min-height:70px;"></textarea>
+                </div>
+
+                <div id="evFormError" style="display:none;color:#c0392b;font-size:13px;font-weight:600;padding:12px;background:rgba(192,57,43,0.07);border:1px solid rgba(192,57,43,0.2);margin-bottom:16px;"></div>
+
+                <div class="form-actions">
+                  <button class="btn-wa" onclick="submitEvent()" id="evSubmitBtn" style="flex:1;">
+                    <svg width="18" height="18" viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/></svg>
+                    Enviar Solicitação
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    @media(max-width:900px){
+      .eventos-layout { grid-template-columns: 1fr !important; }
+    }
+  </style>
+
+  <!-- FOOTER -->
+  <footer id="footer-info">
+    <div class="foot-brand">
+      <img src="uploads/Hola Churros Logo.png" alt="¡Hola Churros!" style="height:72px;width:auto;object-fit:contain;display:block;margin-bottom:16px;" />
+      <p class="foot-tagline">Churreirira Artesanal em Maputo desde 2020. Feitos com paixão, entregues com calor.</p>
+      <div class="foot-social">
+        <a href="https://instagram.com/holachurrosmz">Instagram</a>
+        <a href="https://wa.me/258852690365">WhatsApp</a>
+      </div>
+    </div>
+    <div class="foot-col">
+      <div class="foot-col-title">Menu</div>
+      <ul>
+        <li><a href="#menu">Churros Espanhóis</a></li>
+        <li><a href="#menu">Churros Recheados</a></li>
+        <li><a href="#menu">Vitrine Gourmet</a></li>
+        <li><a href="#eventos">Eventos &amp; Catering</a></li>
+      </ul>
+    </div>
+    <div class="foot-col">
+      <div class="foot-col-title">Horários</div>
+      <ul>
+        <li><a href="#">Loja: Seg–Sex · 09:30–18:30</a></li>
+        <li><a href="#">Delivery: 14:00–18:00</a></li>
+      </ul>
+    </div>
+    <div class="foot-col">
+      <div class="foot-col-title">Encontre-nos</div>
+      <p class="addr">Av. Amílcar Cabral, 856<br/>Cidade de Maputo<br/>Moçambique</p>
+    </div>
+  </footer>
+  <div class="foot-bottom">
+    <span class="foot-copy">© 2025 ¡Hola Churros! Churreirira Artesanal · Maputo</span>
+    <span class="foot-copy">@holachurrosmz · 84 400 1932</span>
+  </div>
+
+  <!-- REACT ORDER FORM -->
+  <script type="text/babel">
+    const { useState } = React;
+
+    const PRODS = [
+      { id:"e4",  name:"Churros Espanhóis",  desc:"4 unidades · Doce de Leite ou Nutella", price:250, group:"esp",
+        img:"https://lh3.googleusercontent.com/aida-public/AB6AXuDaD6NnH6lkgWS6yotguOVWXuc4WKd2mpxRL76sYH1t-mOmZdYsfl-j1BdjyQ90pkjzxHA5c4b2kA-gRXnGd7pgUoVhCPdF9gaSfLHL3mwriPDp4kpJF9qC20iVNdyL_YrXPdbzoo9AJGOWOFZ2TVxI_hIc8z1_66hOOpx5FqzrdXxBADDPJklI9BV-Kfx2VnYj3yzQM0vgB_wMjt2fxoBTxRjF0muxj3bToRwAJLGm4VdsDq68KbGx5F4TWgqTF3goSBsaqHt6YarU" },
+      { id:"e6",  name:"Churros Espanhóis",  desc:"6 unidades · Doce de Leite ou Nutella", price:320, group:"esp",
+        img:"https://lh3.googleusercontent.com/aida-public/AB6AXuDaD6NnH6lkgWS6yotguOVWXuc4WKd2mpxRL76sYH1t-mOmZdYsfl-j1BdjyQ90pkjzxHA5c4b2kA-gRXnGd7pgUoVhCPdF9gaSfLHL3mwriPDp4kpJF9qC20iVNdyL_YrXPdbzoo9AJGOWOFZ2TVxI_hIc8z1_66hOOpx5FqzrdXxBADDPJklI9BV-Kfx2VnYj3yzQM0vgB_wMjt2fxoBTxRjF0muxj3bToRwAJLGm4VdsDq68KbGx5F4TWgqTF3goSBsaqHt6YarU" },
+      { id:"e12", name:"Churros Espanhóis",  desc:"12 unidades · Doce de Leite ou Nutella",price:580, group:"esp",
+        img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBx80OhPVOAshIcZy-JHrvjSxHUEW4gIzB98_A8-N677lJp0SAw1aDzn39yNCzwFARTjKhdWroXZ7QpvVZ75a4ATDpqsGYmTrRAX3L009DdSRBq6vbRZn-w0o5QopDN2DZNzf4sPnDcLVPr_INzDfawrd6mBH2l-sImEQkhcUKm-A4uPL5XFc_ghDHXBf5bAK3rDvn8nkIlb15_pzLcMjg_g1oMT9ZUQzc6IhyIywwgMiakd7007tE_4Ob0ksK-Ig0HaYwjLAxCtecL" },
+      { id:"r4",  name:"Churros Recheados",  desc:"4 unidades",                             price:600, group:"rech",
+        img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBI3L_-8M_pxu8ZvAq2Yhq-QL3Ne4VpvWG_TfTTo0YRSUsnIAEDtrRL96JLBupieh8mcaT0-gNcnpim9gCl-pVY-mfhK-FU6l6fan3SXEDG-ZYNBephWX2Haj2GSm5ssZQd1vI4-YNgYmPFtwLjV3x54mwZaEsHYJU8NbJxXKHekG3f8KF_SwBrQ2tsdxdtNviZ4F_NFK7huDN3iJ55U8RDcUGgch4dGghwWvoLcZOmwtovzJ3bijAGPlSLMU9EQMCqEVh-oWGAO56s" },
+      { id:"r6",  name:"Churros Recheados",  desc:"6 unidades",                             price:900, group:"rech",
+        img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBI3L_-8M_pxu8ZvAq2Yhq-QL3Ne4VpvWG_TfTTo0YRSUsnIAEDtrRL96JLBupieh8mcaT0-gNcnpim9gCl-pVY-mfhK-FU6l6fan3SXEDG-ZYNBephWX2Haj2GSm5ssZQd1vI4-YNgYmPFtwLjV3x54mwZaEsHYJU8NbJxXKHekG3f8KF_SwBrQ2tsdxdtNviZ4F_NFK7huDN3iJ55U8RDcUGgch4dGghwWvoLcZOmwtovzJ3bijAGPlSLMU9EQMCqEVh-oWGAO56s" },
+    ];
+
+    function Form() {
+      const [step, setStep]       = useState(0);
+      const [cart, setCart]       = useState({});
+      const [sauce, setSauce]     = useState("Doce de Leite");
+      const [name, setName]       = useState("");
+      const [phone, setPhone]     = useState("");
+      const [addr, setAddr]       = useState("");
+      const [notes, setNotes]     = useState("");
+      const [errs, setErrs]       = useState({});
+
+      const items = PRODS.filter(p => (cart[p.id]||0) > 0);
+      const total = items.reduce((s,p) => s + p.price*(cart[p.id]||0), 0);
+      const count = Object.values(cart).reduce((a,b)=>a+b,0);
+
+      const setQty = (id, delta) => setCart(p => ({...p, [id]: Math.max(0,(p[id]||0)+delta)}));
+
+      const validate2 = () => {
+        const e = {};
+        if (!name.trim()) e.name = "Obrigatório";
+        if (!phone.trim() || phone.trim().length < 7) e.phone = "Número inválido";
+        if (!addr.trim()) e.addr = "Obrigatório";
+        setErrs(e);
+        return Object.keys(e).length === 0;
+      };
+
+      const sendWA = async () => {
+        const hasEsp = items.some(p=>p.group==="esp");
+        let msg = `*¡Hola Churros! — Nova Encomenda*\n\n`;
+        msg += `👤 *${name}*\n📱 ${phone}\n📍 ${addr}\n\n`;
+        msg += `*Pedido:*\n`;
+        items.forEach(p => {
+          msg += `• ${p.name} (${p.desc.split('·')[0].trim()}) ×${cart[p.id]} — ${(p.price*cart[p.id]).toLocaleString()} MT\n`;
+        });
+        if (hasEsp) msg += `\n🍯 Molho: ${sauce}`;
+        msg += `\n\n*Total: ${total.toLocaleString()} MT*`;
+        if (notes.trim()) msg += `\n\n📝 ${notes}`;
+
+        // Save to database (fire-and-forget)
+        try {
+          await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              customer_name: name, phone, address: addr,
+              items: items.map(p=>({id:p.id,name:p.name,desc:p.desc,price:p.price,qty:cart[p.id]})),
+              sauce: hasEsp ? sauce : null,
+              total, notes
+            })
+          });
+        } catch(e) { console.warn('Falha ao guardar pedido:', e); }
+
+        window.open(`https://wa.me/258852690365?text=${encodeURIComponent(msg)}`,"_blank");
+      };
+
+      const tabs = ["Produtos","Entrega","Confirmar"];
+
+      return (
+        <div className="order-form-wrap">
+          <div className="form-tabs">
+            {tabs.map((t,i)=>(
+              <div key={i} className={`form-tab ${step===i?"active":""}`} onClick={()=>step>i&&setStep(i)}>
+                <span style={{marginRight:6,opacity:.5}}>{i+1}.</span>{t}
+              </div>
+            ))}
+          </div>
+          <div className="form-body">
+
+            {/* STEP 0 */}
+            <div className={`form-step-content ${step===0?"active":""}`}>
+              <div className="product-grid">
+                {PRODS.map(p => {
+                  const q = cart[p.id]||0;
+                  return (
+                    <div key={p.id} className={`prod-row ${q>0?"on":""}`} onClick={()=>q===0&&setQty(p.id,1)}>
+                      <div className="prod-row-img">
+                        <img src={p.img} alt={p.name} />
+                      </div>
+                      <div className="prod-row-info">
+                        <div className="prod-name">{p.name}</div>
+                        <div className="prod-desc">{p.desc}</div>
+                      </div>
+                      <div className="prod-price">{p.price} MT</div>
+                      {q > 0
+                        ? <div className="prod-qty-ctrl" onClick={e=>e.stopPropagation()}>
+                            <button className="qty-btn" onClick={()=>setQty(p.id,-1)}>−</button>
+                            <span className="qty-num">{q}</span>
+                            <button className="qty-btn" onClick={()=>setQty(p.id,+1)}>+</button>
+                          </div>
+                        : <div className="prod-qty-ctrl">
+                            <button className="qty-btn" style={{fontSize:15}} onClick={e=>{e.stopPropagation();setQty(p.id,1)}}>+</button>
+                          </div>
+                      }
+                    </div>
+                  );
+                })}
+              </div>
+
+              {items.some(p=>p.group==="esp") && (
+                <div className="f-group" style={{marginTop:24}}>
+                  <label className="f-label">Molho para os Espanhóis</label>
+                  <div className="sauce-selector">
+                    {["Doce de Leite","Nutella"].map(s=>(
+                      <div key={s} className={`sauce-opt ${sauce===s?"on":""}`} onClick={()=>setSauce(s)}>
+                        {s === "Doce de Leite" ? "🍯 " : "🍫 "}{s}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {total > 0 && (
+                <div className="cart-bar">
+                  <span className="cart-label">{count} {count===1?"item":"itens"}</span>
+                  <span className="cart-total">{total.toLocaleString()} MT</span>
+                </div>
+              )}
+
+              <div className="form-actions">
+                <button className="btn-next" disabled={count===0} onClick={()=>count>0&&setStep(1)}>
+                  Continuar →
+                </button>
+              </div>
+            </div>
+
+            {/* STEP 1 */}
+            <div className={`form-step-content ${step===1?"active":""}`}>
+              <div className="f-row">
+                <div className="f-group">
+                  <label className="f-label">Nome</label>
+                  <input className="f-input" value={name} onChange={e=>{setName(e.target.value);setErrs(p=>({...p,name:null}))}} placeholder="Seu nome completo" style={errs.name?{borderColor:"#c0392b"}:{}}/>
+                  {errs.name && <div className="f-error" style={{display:"block"}}>{errs.name}</div>}
+                </div>
+                <div className="f-group">
+                  <label className="f-label">Telefone / WhatsApp</label>
+                  <input className="f-input" value={phone} onChange={e=>{setPhone(e.target.value);setErrs(p=>({...p,phone:null}))}} placeholder="84 000 0000" style={errs.phone?{borderColor:"#c0392b"}:{}}/>
+                  {errs.phone && <div className="f-error" style={{display:"block"}}>{errs.phone}</div>}
+                </div>
+              </div>
+              <div className="f-group">
+                <label className="f-label">Morada de entrega</label>
+                <textarea className="f-textarea" value={addr} onChange={e=>{setAddr(e.target.value);setErrs(p=>({...p,addr:null}))}} placeholder="Av. exemplo, nº, bairro, Maputo" style={errs.addr?{borderColor:"#c0392b"}:{}}/>
+                {errs.addr && <div className="f-error" style={{display:"block"}}>{errs.addr}</div>}
+              </div>
+              <div className="f-group">
+                <label className="f-label">Observações <span style={{fontWeight:400,opacity:.6}}>(opcional)</span></label>
+                <textarea className="f-textarea" value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Alergias, instruções especiais..." style={{minHeight:70}}/>
+              </div>
+              <div className="form-actions">
+                <button className="btn-back" onClick={()=>setStep(0)}>← Voltar</button>
+                <button className="btn-next" onClick={()=>validate2()&&setStep(2)}>Confirmar →</button>
+              </div>
+            </div>
+
+            {/* STEP 2 */}
+            <div className={`form-step-content ${step===2?"active":""}`}>
+              <div className="summary-block">
+                <div className="summary-head">Pedido</div>
+                {items.map(p=>(
+                  <div key={p.id} className="sum-row">
+                    <span>{p.name} ({p.desc.split('·')[0].trim()}) ×{cart[p.id]}</span>
+                    <span>{(p.price*cart[p.id]).toLocaleString()} MT</span>
+                  </div>
+                ))}
+                {items.some(p=>p.group==="esp") && (
+                  <div className="sum-row"><span>Molho</span><span>{sauce}</span></div>
+                )}
+                <div className="sum-total">
+                  <span className="sum-total-label">Total</span>
+                  <span className="sum-total-val">{total.toLocaleString()} MT</span>
+                </div>
+              </div>
+              <div className="summary-block">
+                <div className="summary-head">Entrega</div>
+                <div className="sum-row"><span>Nome</span><span>{name}</span></div>
+                <div className="sum-row"><span>Telefone</span><span>{phone}</span></div>
+                <div className="sum-row"><span>Morada</span><span style={{maxWidth:200,textAlign:"right"}}>{addr}</span></div>
+                {notes && <div className="sum-row"><span>Obs.</span><span style={{maxWidth:200,textAlign:"right"}}>{notes}</span></div>}
+              </div>
+              <div style={{
+                padding:"14px 18px", background:"rgba(37,211,102,0.07)",
+                border:"1px solid rgba(37,211,102,0.2)",
+                fontSize:13, color:"#2a7a4a", fontWeight:600, marginBottom:4
+              }}>
+                Será redirecionado para o WhatsApp com o pedido já formatado.
+              </div>
+              <div className="form-actions">
+                <button className="btn-back" onClick={()=>setStep(1)}>← Voltar</button>
+                <button className="btn-wa" onClick={sendWA}>
+                  <svg width="18" height="18" viewBox="0 0 32 32" fill="currentColor">
+                    <path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/>
+                  </svg>
+                  Enviar pelo WhatsApp
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("orderFormMount")).render(<Form />);
+  </script>
+
+  <!-- EVENT FORM LOGIC -->
+  <script>
+    function highlightService() {
+      ['svc_churros_lbl','svc_ice_lbl','svc_coffee_lbl'].forEach(id => {
+        const lbl = document.getElementById(id);
+        if (!lbl) return;
+        const radio = lbl.querySelector('input[type=radio]');
+        lbl.style.borderColor = radio.checked ? 'var(--brown)' : 'rgba(61,30,8,0.12)';
+        lbl.style.background  = radio.checked ? 'var(--warm)'  : '';
+      });
+    }
+
+    async function submitEvent() {
+      const btn = document.getElementById('evSubmitBtn');
+      const errEl = document.getElementById('evFormError');
+      errEl.style.display = 'none';
+
+      const name         = document.getElementById('ev_name').value.trim();
+      const phone        = document.getElementById('ev_phone').value.trim();
+      const event_type   = document.getElementById('ev_type').value;
+      const event_date   = document.getElementById('ev_date').value;
+      const location     = document.getElementById('ev_location').value.trim();
+      const start_time   = document.getElementById('ev_start').value;
+      const end_time     = document.getElementById('ev_end').value;
+      const participants = document.getElementById('ev_participants').value;
+      const notes        = document.getElementById('ev_notes').value.trim();
+      const serviceEl    = document.querySelector('input[name="ev_service"]:checked');
+      const service      = serviceEl ? serviceEl.value : '';
+
+      if (!name || !phone || !event_type || !event_date || !location || !start_time || !end_time || !participants || !service) {
+        errEl.textContent = 'Por favor preencha todos os campos obrigatórios.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'A enviar...';
+
+      try {
+        const res = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contact_name: name, phone, event_type, event_date, location, start_time, end_time, participants: parseInt(participants), service, notes })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          // Send WhatsApp
+          const msg = `*¡Hola Churros! — Pedido de Evento*\n\n👤 *${name}*\n📱 ${phone}\n\n🎉 *Tipo:* ${event_type}\n📅 *Data:* ${event_date}\n📍 *Local:* ${location}\n⏰ *Horário:* ${start_time} — ${end_time}\n👥 *Participantes:* ${participants}\n🛎️ *Serviço:* ${service}${notes ? `\n\n📝 ${notes}` : ''}`;
+          window.open(`https://wa.me/258852690365?text=${encodeURIComponent(msg)}`, '_blank');
+          document.getElementById('eventFormFields').style.display = 'none';
+          document.getElementById('eventSuccess').style.display = 'block';
+        } else {
+          throw new Error(data.error || 'Erro desconhecido');
+        }
+      } catch(err) {
+        errEl.textContent = 'Erro ao enviar. Tente novamente ou contacte-nos pelo WhatsApp.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/></svg> Enviar Solicitação`;
+      }
+    }
+
+    function resetEventForm() {
+      document.getElementById('ev_name').value = '';
+      document.getElementById('ev_phone').value = '';
+      document.getElementById('ev_type').value = '';
+      document.getElementById('ev_date').value = '';
+      document.getElementById('ev_location').value = '';
+      document.getElementById('ev_start').value = '';
+      document.getElementById('ev_end').value = '';
+      document.getElementById('ev_participants').value = '';
+      document.getElementById('ev_notes').value = '';
+      document.querySelectorAll('input[name="ev_service"]').forEach(r => r.checked = false);
+      highlightService();
+      document.getElementById('eventFormFields').style.display = 'block';
+      document.getElementById('eventSuccess').style.display = 'none';
+    }
+  </script>
+
+  <script>
+    /* ── CURSOR ── */
+    const dot  = document.getElementById("cursorDot");
+    const ring = document.getElementById("cursorRing");
+    let mx=0,my=0,rx=0,ry=0;
+    document.addEventListener("mousemove", e => { mx=e.clientX; my=e.clientY; dot.style.left=mx+"px"; dot.style.top=my+"px"; });
+    (function tick(){
+      rx += (mx-rx)*0.12; ry += (my-ry)*0.12;
+      ring.style.left=rx+"px"; ring.style.top=ry+"px";
+      requestAnimationFrame(tick);
+    })();
+
+    /* ── SCROLL REVEAL ── */
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach((e,i) => {
+        if(e.isIntersecting){
+          setTimeout(()=>e.target.classList.add("visible"), i*60);
+          obs.unobserve(e.target);
+        }
+      });
+    },{threshold:0.1});
+    document.querySelectorAll(".r").forEach(el=>obs.observe(el));
+
+    /* ── HERO LOGO → NAV shrink animation ── */
+    (function() {
+      const nav        = document.getElementById("mainNav");
+      const heroImg    = document.getElementById("heroLogoImg");
+      const navLogoImg = nav.querySelector(".nav-logo-link img");
+      const hero       = document.getElementById("hero");
+
+      function update() {
+        const scrollY  = window.scrollY;
+        const heroH    = hero.offsetHeight;
+        const progress = Math.min(1, Math.max(0, scrollY / (heroH * 0.5)));
+
+        // Nav state
+        if (scrollY > heroH * 0.45) {
+          nav.classList.add("scrolled");
+          navLogoImg.style.opacity = "1";
+          navLogoImg.style.pointerEvents = "auto";
+        } else {
+          nav.classList.remove("scrolled");
+          navLogoImg.style.opacity = "0";
+          navLogoImg.style.pointerEvents = "none";
+        }
+
+        // Hero logo: shrink + fade out as user scrolls
+        const startSize = Math.min(280, window.innerWidth * 0.18);
+        const scale = 1 - progress * 0.35;
+        const opacity = 1 - progress * 1.4;
+        heroImg.style.transform = `scale(${Math.max(0.65, scale)})`;
+        heroImg.style.opacity   = Math.max(0, opacity);
+        heroImg.style.transformOrigin = "left center";
+      }
+
+      window.addEventListener("scroll", update, { passive: true });
+      window.addEventListener("resize", update);
+      update();
+    })();
+  </script>
+
+</body>
+</html>
