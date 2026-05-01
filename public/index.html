@@ -1425,35 +1425,73 @@
         img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBI3L_-8M_pxu8ZvAq2Yhq-QL3Ne4VpvWG_TfTTo0YRSUsnIAEDtrRL96JLBupieh8mcaT0-gNcnpim9gCl-pVY-mfhK-FU6l6fan3SXEDG-ZYNBephWX2Haj2GSm5ssZQd1vI4-YNgYmPFtwLjV3x54mwZaEsHYJU8NbJxXKHekG3f8KF_SwBrQ2tsdxdtNviZ4F_NFK7huDN3iJ55U8RDcUGgch4dGghwWvoLcZOmwtovzJ3bijAGPlSLMU9EQMCqEVh-oWGAO56s" }
     ];
     var SAUCES = ["Doce de Leite", "Nutella"];
-    var DELIVERY_FEE = 100;
+    var ZONES = [
+      { id:'cidade',      label:'Dentro da cidade',             fee:100 },
+      { id:'baixa',       label:'Baixa',                        fee:120 },
+      { id:'marescs',     label:'Marés / Costa do Sol',         fee:null },
+      { id:'malhagalene', label:'Malha Galene',                 fee:150 },
+      { id:'recolha',     label:'Recolha via Yango (cliente)',  fee:0   }
+    ];
+    var EXTRAS = [
+      { id:'castanhas', label:'Castanhas',                   price:100, cat:'cobertura' },
+      { id:'pistachio', label:'Pistachio',                   price:100, cat:'cobertura' },
+      { id:'mashmalow', label:'Marshmallow',                 price:100, cat:'cobertura' },
+      { id:'smarties',  label:'Smarties',                    price:100, cat:'cobertura' },
+      { id:'granulado', label:'Granulado de Chocolate',      price:100, cat:'cobertura' },
+      { id:'coco',      label:'Coco Ralado',                 price:100, cat:'cobertura' },
+      { id:'xtra_ddl',  label:'Molho Extra — Doce de Leite', price:100, cat:'molho' },
+      { id:'xtra_ntl',  label:'Molho Extra — Nutella',       price:100, cat:'molho' }
+    ];
     var WA_ICON = '<svg width="18" height="18" viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/></svg>';
 
-    var state = { step: 0, cartItems: [], name: '', phone: '', addr: '', notes: '', errs: {} };
+    var state = { step:0, cartItems:[], extras:[], zone:null, name:'', phone:'', addr:'', notes:'', errs:{}, waUrl:'' };
 
+    function zoneFee(id) {
+      if (id === 'marescs') return new Date().getHours() >= 16 ? 200 : 150;
+      var z = ZONES.find(function(z){ return z.id === id; });
+      return z ? z.fee : 0;
+    }
+    function getDeliveryFee() { return state.zone !== null ? zoneFee(state.zone) : null; }
     function getQty(id)   { return state.cartItems.filter(function(i){ return i.id === id; }).length; }
     function getGroup(id) { return state.cartItems.filter(function(i){ return i.id === id; }); }
     function getSubtotal() {
-      return state.cartItems.reduce(function(s, i) {
+      return state.cartItems.reduce(function(s,i){
         var p = PRODS.find(function(p){ return p.id === i.id; });
         return s + (p ? p.price : 0);
       }, 0);
     }
-    function getTotal() { return getSubtotal() + (state.cartItems.length > 0 ? DELIVERY_FEE : 0); }
+    function getExtrasTotal() {
+      return state.extras.reduce(function(s,id){
+        var ex = EXTRAS.find(function(e){ return e.id === id; });
+        return s + (ex ? ex.price : 0);
+      }, 0);
+    }
+    function getTotal() {
+      var fee = getDeliveryFee();
+      return getSubtotal() + getExtrasTotal() + (fee !== null ? fee : 0);
+    }
+    function toggleExtra(id) {
+      if (state.extras.indexOf(id) !== -1) {
+        state.extras = state.extras.filter(function(e){ return e !== id; });
+      } else {
+        state.extras = state.extras.concat([id]);
+      }
+      render();
+    }
 
     function addItem(id) {
-      state.cartItems = state.cartItems.concat([{ uid: String(Date.now() + Math.random()), id: id, sauce: "Doce de Leite" }]);
+      state.cartItems = state.cartItems.concat([{ uid: String(Date.now() + Math.random()), id:id, sauce:'Doce de Leite' }]);
       render();
     }
     function removeItem(id) {
       var arr = state.cartItems;
-      var revIdx = arr.slice().reverse().findIndex(function(i){ return i.id === id; });
-      if (revIdx === -1) return;
-      var realIdx = arr.length - 1 - revIdx;
-      state.cartItems = arr.filter(function(_, i){ return i !== realIdx; });
+      var ri = arr.slice().reverse().findIndex(function(i){ return i.id === id; });
+      if (ri === -1) return;
+      state.cartItems = arr.filter(function(_,i){ return i !== arr.length-1-ri; });
       render();
     }
     function updateSauce(uid, sauce) {
-      state.cartItems = state.cartItems.map(function(i){ return i.uid === uid ? Object.assign({}, i, { sauce: sauce }) : i; });
+      state.cartItems = state.cartItems.map(function(i){ return i.uid === uid ? Object.assign({},i,{sauce:sauce}) : i; });
       render();
     }
     function syncInputs() {
@@ -1461,81 +1499,115 @@
       var p = document.getElementById('ord_phone');
       var a = document.getElementById('ord_addr');
       var o = document.getElementById('ord_notes');
+      var z = document.querySelector('input[name="ord_zone"]:checked');
       if (n) state.name  = n.value;
       if (p) state.phone = p.value;
       if (a) state.addr  = a.value;
       if (o) state.notes = o.value;
+      if (z) state.zone  = z.value;
     }
-    function goStep(n) { syncInputs(); state.step = n; render(); }
+    function pickZone() { syncInputs(); render(); }
+    function goStep(n)   { syncInputs(); state.step = n; render(); }
     function validate() {
       syncInputs();
       var e = {};
-      if (!state.name.trim())  e.name  = 'Obrigatório';
-      if (!state.phone.trim() || state.phone.trim().length < 7) e.phone = 'Número inválido';
-      if (!state.addr.trim())  e.addr  = 'Obrigatório';
+      if (!state.zone)                                              e.zone  = 'Selecione a zona de entrega';
+      if (!state.name.trim())                                       e.name  = 'Obrigatório';
+      if (!state.phone.trim() || state.phone.trim().length < 7)    e.phone = 'Número inválido';
+      if (state.zone !== 'recolha' && !state.addr.trim())          e.addr  = 'Obrigatório';
       state.errs = e;
       if (!Object.keys(e).length) state.step = 2;
       render();
     }
     function sendWA() {
-      var total = getTotal();
+      var fee  = getDeliveryFee();
+      var sub  = getSubtotal();
+      var total = state.zone === 'recolha' ? sub : (sub + fee);
+      var zone  = ZONES.find(function(z){ return z.id === state.zone; });
+      var zName = zone ? zone.label : '';
+      var isPeak = state.zone === 'marescs' && new Date().getHours() >= 16;
+
       var msg = '*¡Hola Churros! — Nova Encomenda*\n\n';
-      msg += '*' + state.name + '*\nTel: ' + state.phone + '\nMorada: ' + state.addr + '\n\n';
+      msg += '*' + state.name + '*\nTel: ' + state.phone + '\n';
+      if (state.zone === 'recolha') {
+        msg += 'Entrega: Recolha via Yango\n\n';
+      } else {
+        msg += 'Morada: ' + state.addr + '\nZona: ' + zName + '\n\n';
+      }
       msg += '*Pedido:*\n';
       PRODS.forEach(function(p) {
         getGroup(p.id).forEach(function(item) {
           msg += '• ' + p.name + ' ' + p.desc + (item.sauce ? ' — ' + item.sauce : '') + ' — ' + p.price.toLocaleString() + ' MT\n';
         });
       });
-      msg += '\nEntrega: ' + DELIVERY_FEE + ' MT';
-      msg += '\n*Total: ' + total.toLocaleString() + ' MT*';
+      if (state.extras.length > 0) {
+        msg += '\n*Extras:*\n';
+        state.extras.forEach(function(id) {
+          var ex = EXTRAS.find(function(e){ return e.id === id; });
+          if (ex) msg += '• ' + ex.label + ' — ' + ex.price + ' MT\n';
+        });
+      }
+      if (state.zone === 'recolha') {
+        msg += '\nEntrega: Recolha via Yango (cliente)';
+        msg += '\n*Total: ' + total.toLocaleString() + ' MT*';
+      } else {
+        msg += '\nEntrega (' + zName + (isPeak ? ' — hora de ponta' : '') + '): ' + fee + ' MT';
+        msg += '\n*Total: ' + total.toLocaleString() + ' MT*';
+      }
       if (state.notes.trim()) msg += '\n\nObs: ' + state.notes;
-      window.location.href = 'https://wa.me/258852690365?text=' + encodeURIComponent(msg);
+
+      state.waUrl = 'https://wa.me/258852690365?text=' + encodeURIComponent(msg);
+      state.step = 3;
+      render();
+
       fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
-          customer_name: state.name, phone: state.phone, address: state.addr,
-          items: state.cartItems.map(function(i) {
+          customer_name: state.name, phone: state.phone,
+          address: state.zone === 'recolha' ? 'Recolha via Yango' : state.addr,
+          items: state.cartItems.map(function(i){
             var p = PRODS.find(function(p){ return p.id === i.id; });
-            return { id: i.id, name: p.name, desc: p.desc, price: p.price, qty: 1, sauce: i.sauce };
+            return { id:i.id, name:p.name, desc:p.desc, price:p.price, qty:1, sauce:i.sauce };
           }),
           sauce: state.cartItems.filter(function(i){ return i.sauce; }).map(function(i){ return i.sauce; }).join(', ') || null,
           total: total, notes: state.notes
         })
-      }).catch(function(e){ console.warn('DB:', e); });
+      }).catch(function(e){ console.warn('DB:',e); });
+    }
+    function newOrder() {
+      state = { step:0, cartItems:[], extras:[], zone:null, name:'', phone:'', addr:'', notes:'', errs:{}, waUrl:'' };
+      render();
     }
 
     function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
     function buildStep0() {
-      var count = state.cartItems.length;
+      var count    = state.cartItems.length;
       var subtotal = getSubtotal();
-      var total = getTotal();
       var html = '<div class="product-grid">';
       PRODS.forEach(function(p) {
-        var q = getQty(p.id);
+        var q     = getQty(p.id);
         var group = getGroup(p.id);
-        html += '<div class="prod-row' + (q > 0 ? ' on' : '') + '" style="display:flex;flex-direction:column;padding:0;"' + (q === 0 ? ' onclick="window._of.add(\'' + p.id + '\')"' : '') + '>';
+        html += '<div class="prod-row'+(q>0?' on':'')+'" style="display:flex;flex-direction:column;padding:0;"'+(q===0?' onclick="window._of.add(\''+p.id+'\')""':'')+'>';
         html += '<div style="display:grid;grid-template-columns:72px 1fr auto;align-items:center;width:100%;">';
-        html += '<div class="prod-row-img" style="width:72px;height:72px;"><img src="' + p.img + '" alt="' + esc(p.name) + '" loading="lazy"/></div>';
-        html += '<div class="prod-row-info"><div class="prod-name">' + esc(p.name) + '</div><div class="prod-desc">' + esc(p.desc) + '</div></div>';
+        html += '<div class="prod-row-img" style="width:72px;height:72px;"><img src="'+p.img+'" alt="'+esc(p.name)+'" loading="lazy"/></div>';
+        html += '<div class="prod-row-info"><div class="prod-name">'+esc(p.name)+'</div><div class="prod-desc">'+esc(p.desc)+'</div></div>';
         html += '<div style="display:flex;align-items:center;gap:6px;padding-right:12px;" onclick="event.stopPropagation()">';
-        html += '<span class="prod-price" style="font-size:17px">' + p.price + ' MT</span>';
+        html += '<span class="prod-price" style="font-size:17px">'+p.price+' MT</span>';
         if (q > 0) {
-          html += '<div class="prod-qty-ctrl" style="gap:6px;"><button class="qty-btn" onclick="window._of.remove(\'' + p.id + '\')">&#8722;</button><span class="qty-num">' + q + '</span><button class="qty-btn" onclick="window._of.add(\'' + p.id + '\')">+</button></div>';
+          html += '<div class="prod-qty-ctrl" style="gap:6px;"><button class="qty-btn" onclick="window._of.remove(\''+p.id+'\')">&#8722;</button><span class="qty-num">'+q+'</span><button class="qty-btn" onclick="window._of.add(\''+p.id+'\')">+</button></div>';
         } else {
-          html += '<div class="prod-qty-ctrl"><button class="qty-btn" style="font-size:15px" onclick="window._of.add(\'' + p.id + '\')">+</button></div>';
+          html += '<div class="prod-qty-ctrl"><button class="qty-btn" style="font-size:15px" onclick="window._of.add(\''+p.id+'\')">+</button></div>';
         }
         html += '</div></div>';
         if (q > 0) {
           html += '<div style="border-top:1px solid rgba(61,30,8,0.08);padding:8px 12px 10px;" onclick="event.stopPropagation()">';
           group.forEach(function(item, idx) {
-            html += '<div style="display:flex;align-items:center;gap:6px;' + (idx > 0 ? 'margin-top:6px;' : '') + '">';
-            html += '<span style="font-size:11px;font-weight:700;color:var(--muted);min-width:52px;letter-spacing:0.05em;">' + (q > 1 ? '#' + (idx + 1) : 'Molho') + '</span>';
+            html += '<div style="display:flex;align-items:center;gap:6px;'+(idx>0?'margin-top:6px;':'')+'">';
+            html += '<span style="font-size:11px;font-weight:700;color:var(--muted);min-width:52px;letter-spacing:0.05em;">'+(q>1?'#'+(idx+1):'Molho')+'</span>';
             SAUCES.forEach(function(s) {
               var sel = item.sauce === s;
-              html += '<button onclick="window._of.sauce(\'' + item.uid + '\',\'' + esc(s) + '\')" style="flex:1;padding:6px 4px;border:' + (sel ? '1.5px solid var(--brown)' : '1px solid rgba(61,30,8,0.15)') + ';background:' + (sel ? 'var(--warm)' : 'transparent') + ';color:' + (sel ? 'var(--brown)' : 'var(--muted)') + ';font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;">' + esc(s) + '</button>';
+              html += '<button onclick="window._of.sauce(\''+item.uid+'\',\''+esc(s)+'\')" style="flex:1;padding:6px 4px;border:'+(sel?'1.5px solid var(--brown)':'1px solid rgba(61,30,8,0.15)')+';background:'+(sel?'var(--warm)':'transparent')+';color:'+(sel?'var(--brown)':'var(--muted)')+';font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;">'+esc(s)+'</button>';
             });
             html += '</div>';
           });
@@ -1545,67 +1617,161 @@
       });
       html += '</div>';
       if (count > 0) {
+        // Extras section
+        html += '<div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(61,30,8,0.08);">';
+        html += '<div style="font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber);margin-bottom:12px;">Extras &amp; Coberturas <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:11px;">(opcional &middot; +100 MT cada)</span></div>';
+        html += '<div style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">Coberturas</div>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">';
+        EXTRAS.filter(function(ex){ return ex.cat==='cobertura'; }).forEach(function(ex) {
+          var sel = state.extras.indexOf(ex.id) !== -1;
+          html += '<button onclick="window._of.toggleExtra(\''+ex.id+'\')" style="padding:8px 14px;border:'+(sel?'1.5px solid var(--brown)':'1px solid rgba(61,30,8,0.15)')+';background:'+(sel?'var(--warm)':'transparent')+';color:'+(sel?'var(--brown)':'var(--muted)')+';font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;">'+esc(ex.label)+(sel?' &#10003;':'')+' </button>';
+        });
+        html += '</div>';
+        html += '<div style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">Molho Extra</div>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;">';
+        EXTRAS.filter(function(ex){ return ex.cat==='molho'; }).forEach(function(ex) {
+          var sel = state.extras.indexOf(ex.id) !== -1;
+          html += '<button onclick="window._of.toggleExtra(\''+ex.id+'\')" style="padding:8px 14px;border:'+(sel?'1.5px solid var(--brown)':'1px solid rgba(61,30,8,0.15)')+';background:'+(sel?'var(--warm)':'transparent')+';color:'+(sel?'var(--brown)':'var(--muted)')+';font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;">'+esc(ex.label)+(sel?' &#10003;':'')+' </button>';
+        });
+        html += '</div></div>';
+
+        // Cart bar
+        var extTotal = getExtrasTotal();
         html += '<div class="cart-bar" style="flex-direction:column;gap:4px;align-items:stretch;">';
-        html += '<div style="display:flex;justify-content:space-between;align-items:center;"><span class="cart-label">' + count + ' ' + (count === 1 ? 'item' : 'itens') + '</span><span style="font-size:13px;color:rgba(251,245,230,0.55);">Subtotal: ' + subtotal.toLocaleString() + ' MT</span></div>';
-        html += '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12px;color:rgba(251,245,230,0.55);letter-spacing:0.06em;text-transform:uppercase;font-weight:600;">Entrega Maputo</span><span style="font-size:14px;color:rgba(251,245,230,0.7);font-weight:600;">' + DELIVERY_FEE + ' MT</span></div>';
-        html += '<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(245,197,24,0.2);padding-top:8px;margin-top:2px;"><span class="cart-label">Total</span><span class="cart-total">' + total.toLocaleString() + ' MT</span></div>';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;"><span class="cart-label">'+count+' '+(count===1?'item':'itens')+'</span><span style="font-size:13px;color:rgba(251,245,230,0.55);">Subtotal: '+subtotal.toLocaleString()+' MT</span></div>';
+        if (extTotal > 0) {
+          html += '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12px;color:rgba(251,245,230,0.55);letter-spacing:0.06em;text-transform:uppercase;font-weight:600;">Extras</span><span style="font-size:14px;color:rgba(251,245,230,0.7);font-weight:600;">'+extTotal.toLocaleString()+' MT</span></div>';
+        }
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12px;color:rgba(251,245,230,0.55);letter-spacing:0.06em;text-transform:uppercase;font-weight:600;">Entrega</span><span style="font-size:13px;color:rgba(251,245,230,0.5);font-style:italic;">conforme zona</span></div>';
         html += '</div>';
       }
-      html += '<div class="form-actions"><button class="btn-next"' + (count === 0 ? ' disabled' : '') + ' onclick="window._of.goStep(1)">Continuar &#8594;</button></div>';
+      html += '<div class="form-actions"><button class="btn-next"'+(count===0?' disabled':'')+' onclick="window._of.goStep(1)">Continuar &#8594;</button></div>';
       return html;
     }
 
     function buildStep1() {
-      var e = state.errs;
-      var html = '<div class="f-row">';
-      html += '<div class="f-group"><label class="f-label">Nome</label><input class="f-input" id="ord_name" value="' + esc(state.name) + '" placeholder="Seu nome completo"' + (e.name ? ' style="border-color:#c0392b"' : '') + '/>' + (e.name ? '<div class="f-error" style="display:block">' + e.name + '</div>' : '') + '</div>';
-      html += '<div class="f-group"><label class="f-label">Telefone / WhatsApp</label><input class="f-input" id="ord_phone" value="' + esc(state.phone) + '" placeholder="84 000 0000"' + (e.phone ? ' style="border-color:#c0392b"' : '') + '/>' + (e.phone ? '<div class="f-error" style="display:block">' + e.phone + '</div>' : '') + '</div>';
+      var e   = state.errs;
+      var html = '';
+
+      // Zone selector
+      html += '<div class="f-group" style="margin-bottom:20px;">';
+      html += '<label class="f-label">Zona de entrega</label>';
+      html += '<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">';
+      ZONES.forEach(function(z) {
+        var fee    = z.id === 'marescs' ? (new Date().getHours() >= 16 ? 200 : 150) : z.fee;
+        var feeStr = z.id === 'recolha' ? 'Recolha' : fee + ' MT';
+        var note   = z.id === 'marescs' ? ' <span style="font-size:11px;color:var(--amber);font-weight:600;">(após 16h: 200 MT)</span>' : '';
+        var sel    = state.zone === z.id;
+        html += '<label style="display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;padding:12px 14px;border:1px solid '+(sel?'var(--brown)':'rgba(61,30,8,0.12)')+';background:'+(sel?'var(--warm)':'transparent')+';transition:all 0.2s;" onclick="window._of.pickZone()">';
+        html += '<span style="display:flex;align-items:center;gap:10px;"><input type="radio" name="ord_zone" value="'+z.id+'"'+(sel?' checked':'')+' style="accent-color:var(--brown);width:16px;height:16px;flex-shrink:0"/>';
+        html += '<span style="font-size:14px;font-weight:600;color:var(--brown);">'+esc(z.label)+note+'</span></span>';
+        html += '<span style="font-size:14px;font-weight:700;color:var(--brown);white-space:nowrap;">'+feeStr+'</span>';
+        html += '</label>';
+      });
       html += '</div>';
-      html += '<div class="f-group"><label class="f-label">Morada de entrega</label><textarea class="f-textarea" id="ord_addr" placeholder="Av. exemplo, nº, bairro, Maputo"' + (e.addr ? ' style="border-color:#c0392b"' : '') + '>' + esc(state.addr) + '</textarea>' + (e.addr ? '<div class="f-error" style="display:block">' + e.addr + '</div>' : '') + '</div>';
-      html += '<div class="f-group"><label class="f-label">Observações <span style="font-weight:400;opacity:.6">(opcional)</span></label><textarea class="f-textarea" id="ord_notes" placeholder="Alergias, instruções especiais..." style="min-height:70px">' + esc(state.notes) + '</textarea></div>';
+      if (e.zone) html += '<div class="f-error" style="display:block">'+e.zone+'</div>';
+      html += '</div>';
+
+      // Name + phone
+      html += '<div class="f-row">';
+      html += '<div class="f-group"><label class="f-label">Nome</label><input class="f-input" id="ord_name" value="'+esc(state.name)+'" placeholder="Seu nome completo"'+(e.name?' style="border-color:#c0392b"':'')+'/>'+(e.name?'<div class="f-error" style="display:block">'+e.name+'</div>':'')+' </div>';
+      html += '<div class="f-group"><label class="f-label">Telefone / WhatsApp</label><input class="f-input" id="ord_phone" value="'+esc(state.phone)+'" placeholder="84 000 0000"'+(e.phone?' style="border-color:#c0392b"':'')+'/>'+(e.phone?'<div class="f-error" style="display:block">'+e.phone+'</div>':'')+' </div>';
+      html += '</div>';
+
+      // Address (hidden for recolha)
+      if (state.zone === 'recolha') {
+        html += '<input type="hidden" id="ord_addr" value=""/>';
+        html += '<div style="padding:14px 16px;background:var(--warm);border:1px solid rgba(61,30,8,0.1);font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px;">O cliente faz o pedido no Yango e combina com o motoboy para recolha. Endereço da loja: <strong style="color:var(--brown)">Av. Amílcar Cabral, 856, Maputo</strong>.</div>';
+      } else {
+        html += '<div class="f-group"><label class="f-label">Morada de entrega</label><textarea class="f-textarea" id="ord_addr" placeholder="Av. exemplo, nº, bairro, Maputo"'+(e.addr?' style="border-color:#c0392b"':'')+'>'+esc(state.addr)+'</textarea>'+(e.addr?'<div class="f-error" style="display:block">'+e.addr+'</div>':'')+' </div>';
+      }
+
+      html += '<div class="f-group"><label class="f-label">Observações <span style="font-weight:400;opacity:.6">(opcional)</span></label><textarea class="f-textarea" id="ord_notes" placeholder="Alergias, instruções especiais..." style="min-height:70px">'+esc(state.notes)+'</textarea></div>';
       html += '<div class="form-actions"><button class="btn-back" onclick="window._of.goStep(0)">&#8592; Voltar</button><button class="btn-next" onclick="window._of.validate()">Confirmar &#8594;</button></div>';
       return html;
     }
 
     function buildStep2() {
-      var total = getTotal();
+      var fee   = getDeliveryFee();
+      var sub   = getSubtotal();
+      var total = state.zone === 'recolha' ? sub : (sub + fee);
+      var zone  = ZONES.find(function(z){ return z.id === state.zone; });
+      var zName = zone ? zone.label : '';
+      var isPeak = state.zone === 'marescs' && new Date().getHours() >= 16;
+
       var html = '<div class="summary-block"><div class="summary-head">Pedido</div>';
       PRODS.forEach(function(p) {
         getGroup(p.id).forEach(function(item) {
-          html += '<div class="sum-row"><span>' + esc(p.name) + ' ' + esc(p.desc) + (item.sauce ? '<span style="color:var(--muted);font-size:12px"> — ' + esc(item.sauce) + '</span>' : '') + '</span><span>' + p.price.toLocaleString() + ' MT</span></div>';
+          html += '<div class="sum-row"><span>'+esc(p.name)+' '+esc(p.desc)+(item.sauce?'<span style="color:var(--muted);font-size:12px"> — '+esc(item.sauce)+'</span>':'')+' </span><span>'+p.price.toLocaleString()+' MT</span></div>';
         });
       });
-      html += '<div class="sum-row"><span style="color:var(--muted)">Entrega Maputo</span><span>' + DELIVERY_FEE + ' MT</span></div>';
-      html += '<div class="sum-total"><span class="sum-total-label">Total</span><span class="sum-total-val">' + total.toLocaleString() + ' MT</span></div>';
+      if (state.extras.length > 0) {
+        state.extras.forEach(function(id) {
+          var ex = EXTRAS.find(function(e){ return e.id === id; });
+          if (ex) html += '<div class="sum-row"><span>'+esc(ex.label)+'</span><span>'+ex.price+' MT</span></div>';
+        });
+      }
+      if (state.zone === 'recolha') {
+        html += '<div class="sum-row"><span style="color:var(--muted)">Entrega</span><span style="color:var(--muted);font-style:italic">Recolha via Yango</span></div>';
+      } else {
+        html += '<div class="sum-row"><span style="color:var(--muted)">Entrega — '+esc(zName)+(isPeak?' <span style="font-size:11px;color:var(--amber)">(hora de ponta)</span>':'')+' </span><span>'+fee+' MT</span></div>';
+      }
+      html += '<div class="sum-total"><span class="sum-total-label">Total</span><span class="sum-total-val">'+total.toLocaleString()+' MT</span></div>';
       html += '</div>';
+
       html += '<div class="summary-block"><div class="summary-head">Entrega</div>';
-      html += '<div class="sum-row"><span>Nome</span><span>' + esc(state.name) + '</span></div>';
-      html += '<div class="sum-row"><span>Telefone</span><span>' + esc(state.phone) + '</span></div>';
-      html += '<div class="sum-row"><span>Morada</span><span style="max-width:200px;text-align:right">' + esc(state.addr) + '</span></div>';
-      if (state.notes.trim()) html += '<div class="sum-row"><span>Obs.</span><span style="max-width:200px;text-align:right">' + esc(state.notes) + '</span></div>';
+      html += '<div class="sum-row"><span>Nome</span><span>'+esc(state.name)+'</span></div>';
+      html += '<div class="sum-row"><span>Telefone</span><span>'+esc(state.phone)+'</span></div>';
+      html += '<div class="sum-row"><span>Zona</span><span>'+esc(zName)+'</span></div>';
+      if (state.zone !== 'recolha' && state.addr.trim()) {
+        html += '<div class="sum-row"><span>Morada</span><span style="max-width:200px;text-align:right">'+esc(state.addr)+'</span></div>';
+      }
+      if (state.notes.trim()) {
+        html += '<div class="sum-row"><span>Obs.</span><span style="max-width:200px;text-align:right">'+esc(state.notes)+'</span></div>';
+      }
       html += '</div>';
-      html += '<div style="padding:14px 18px;background:rgba(37,211,102,0.07);border:1px solid rgba(37,211,102,0.2);font-size:13px;color:#2a7a4a;font-weight:600;margin-bottom:4px;">Será aberto o WhatsApp com o pedido já formatado.</div>';
-      html += '<div class="form-actions"><button class="btn-back" onclick="window._of.goStep(1)">&#8592; Voltar</button><button class="btn-wa" onclick="window._of.sendWA()">' + WA_ICON + ' Enviar pelo WhatsApp</button></div>';
+
+      html += '<div class="form-actions"><button class="btn-back" onclick="window._of.goStep(1)">&#8592; Voltar</button><button class="btn-wa" onclick="window._of.sendWA()">'+WA_ICON+' Enviar para WhatsApp</button></div>';
+      return html;
+    }
+
+    function buildStep3() {
+      var html = '<div style="text-align:center;padding:48px 24px 36px;">';
+      html += '<div style="display:flex;justify-content:center;margin-bottom:24px;">';
+      html += '<svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+      html += '</div>';
+      html += '<div style="font-family:\'Playfair Display\',serif;font-size:30px;font-weight:900;color:var(--brown);margin-bottom:10px;line-height:1.1">Pedido<br/><em style="color:var(--amber)">pronto!</em></div>';
+      html += '<p style="font-size:14px;color:var(--muted);line-height:1.6;max-width:280px;margin:0 auto 32px;">Clique abaixo para enviar o pedido para o nosso WhatsApp e finalizar a encomenda.</p>';
+      html += '<div style="display:flex;flex-direction:column;gap:10px;max-width:320px;margin:0 auto;">';
+      html += '<a href="'+state.waUrl+'" class="btn-wa" style="display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;">'+WA_ICON+' Abrir WhatsApp</a>';
+      html += '<button class="btn-back" onclick="window._of.newOrder()">Fazer Novo Pedido</button>';
+      html += '</div></div>';
       return html;
     }
 
     function render() {
       var mount = document.getElementById('orderFormMount');
       if (!mount) return;
+
+      if (state.step === 3) {
+        mount.innerHTML = '<div class="order-form-wrap">'+buildStep3()+'</div>';
+        return;
+      }
+
       var tabs = ['Produtos', 'Entrega', 'Confirmar'];
       var html = '<div class="order-form-wrap"><div class="form-tabs">';
       tabs.forEach(function(t, i) {
-        html += '<div class="form-tab' + (state.step === i ? ' active' : '') + '"' + (state.step > i ? ' onclick="window._of.goStep(' + i + ')"' : '') + '><span style="margin-right:6px;opacity:.5">' + (i + 1) + '.</span>' + t + '</div>';
+        html += '<div class="form-tab'+(state.step===i?' active':'')+'"'+(state.step>i?' onclick="window._of.goStep('+i+')"':'')+'>  <span style="margin-right:6px;opacity:.5">'+(i+1)+'.</span>'+t+'</div>';
       });
       html += '</div><div class="form-body">';
-      html += '<div class="form-step-content' + (state.step === 0 ? ' active' : '') + '">' + (state.step === 0 ? buildStep0() : '') + '</div>';
-      html += '<div class="form-step-content' + (state.step === 1 ? ' active' : '') + '">' + (state.step === 1 ? buildStep1() : '') + '</div>';
-      html += '<div class="form-step-content' + (state.step === 2 ? ' active' : '') + '">' + (state.step === 2 ? buildStep2() : '') + '</div>';
+      html += '<div class="form-step-content'+(state.step===0?' active':'')+'">  '+(state.step===0?buildStep0():'')+' </div>';
+      html += '<div class="form-step-content'+(state.step===1?' active':'')+'">  '+(state.step===1?buildStep1():'')+' </div>';
+      html += '<div class="form-step-content'+(state.step===2?' active':'')+'">  '+(state.step===2?buildStep2():'')+' </div>';
       html += '</div></div>';
       mount.innerHTML = html;
     }
 
-    window._of = { add: addItem, remove: removeItem, sauce: updateSauce, goStep: goStep, validate: validate, sendWA: sendWA };
+    window._of = { add:addItem, remove:removeItem, sauce:updateSauce, goStep:goStep, pickZone:pickZone, toggleExtra:toggleExtra, validate:validate, sendWA:sendWA, newOrder:newOrder };
     document.addEventListener('DOMContentLoaded', render);
   })();
   </script>
