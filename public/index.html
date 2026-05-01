@@ -10,9 +10,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
   <style>
     :root {
       --ink:    #1c1008;
@@ -1412,297 +1409,205 @@
     </a>
   </div>
 
-  <!-- REACT ORDER FORM -->
-  <script type="text/babel">
-    const { useState } = React;
-
-    const PRODS = [
-      { id:"e4",  name:"Churros Espanhóis",  desc:"4 unidades", price:250, group:"esp",
+  <!-- ORDER FORM -->
+  <script>
+  (function() {
+    var PRODS = [
+      { id:"e4",  name:"Churros Espanhóis",  desc:"4 unidades",  price:250,
         img:"https://lh3.googleusercontent.com/aida-public/AB6AXuDaD6NnH6lkgWS6yotguOVWXuc4WKd2mpxRL76sYH1t-mOmZdYsfl-j1BdjyQ90pkjzxHA5c4b2kA-gRXnGd7pgUoVhCPdF9gaSfLHL3mwriPDp4kpJF9qC20iVNdyL_YrXPdbzoo9AJGOWOFZ2TVxI_hIc8z1_66hOOpx5FqzrdXxBADDPJklI9BV-Kfx2VnYj3yzQM0vgB_wMjt2fxoBTxRjF0muxj3bToRwAJLGm4VdsDq68KbGx5F4TWgqTF3goSBsaqHt6YarU" },
-      { id:"e6",  name:"Churros Espanhóis",  desc:"6 unidades", price:320, group:"esp",
+      { id:"e6",  name:"Churros Espanhóis",  desc:"6 unidades",  price:320,
         img:"https://lh3.googleusercontent.com/aida-public/AB6AXuDaD6NnH6lkgWS6yotguOVWXuc4WKd2mpxRL76sYH1t-mOmZdYsfl-j1BdjyQ90pkjzxHA5c4b2kA-gRXnGd7pgUoVhCPdF9gaSfLHL3mwriPDp4kpJF9qC20iVNdyL_YrXPdbzoo9AJGOWOFZ2TVxI_hIc8z1_66hOOpx5FqzrdXxBADDPJklI9BV-Kfx2VnYj3yzQM0vgB_wMjt2fxoBTxRjF0muxj3bToRwAJLGm4VdsDq68KbGx5F4TWgqTF3goSBsaqHt6YarU" },
-      { id:"e12", name:"Churros Espanhóis",  desc:"12 unidades", price:580, group:"esp",
+      { id:"e12", name:"Churros Espanhóis",  desc:"12 unidades", price:580,
         img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBx80OhPVOAshIcZy-JHrvjSxHUEW4gIzB98_A8-N677lJp0SAw1aDzn39yNCzwFARTjKhdWroXZ7QpvVZ75a4ATDpqsGYmTrRAX3L009DdSRBq6vbRZn-w0o5QopDN2DZNzf4sPnDcLVPr_INzDfawrd6mBH2l-sImEQkhcUKm-A4uPL5XFc_ghDHXBf5bAK3rDvn8nkIlb15_pzLcMjg_g1oMT9ZUQzc6IhyIywwgMiakd7007tE_4Ob0ksK-Ig0HaYwjLAxCtecL" },
-      { id:"r4",  name:"Churros Recheados",  desc:"4 unidades", price:600, group:"rech",
+      { id:"r4",  name:"Churros Recheados",  desc:"4 unidades",  price:600,
         img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBI3L_-8M_pxu8ZvAq2Yhq-QL3Ne4VpvWG_TfTTo0YRSUsnIAEDtrRL96JLBupieh8mcaT0-gNcnpim9gCl-pVY-mfhK-FU6l6fan3SXEDG-ZYNBephWX2Haj2GSm5ssZQd1vI4-YNgYmPFtwLjV3x54mwZaEsHYJU8NbJxXKHekG3f8KF_SwBrQ2tsdxdtNviZ4F_NFK7huDN3iJ55U8RDcUGgch4dGghwWvoLcZOmwtovzJ3bijAGPlSLMU9EQMCqEVh-oWGAO56s" },
-      { id:"r6",  name:"Churros Recheados",  desc:"6 unidades", price:900, group:"rech",
-        img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBI3L_-8M_pxu8ZvAq2Yhq-QL3Ne4VpvWG_TfTTo0YRSUsnIAEDtrRL96JLBupieh8mcaT0-gNcnpim9gCl-pVY-mfhK-FU6l6fan3SXEDG-ZYNBephWX2Haj2GSm5ssZQd1vI4-YNgYmPFtwLjV3x54mwZaEsHYJU8NbJxXKHekG3f8KF_SwBrQ2tsdxdtNviZ4F_NFK7huDN3iJ55U8RDcUGgch4dGghwWvoLcZOmwtovzJ3bijAGPlSLMU9EQMCqEVh-oWGAO56s" },
+      { id:"r6",  name:"Churros Recheados",  desc:"6 unidades",  price:900,
+        img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBI3L_-8M_pxu8ZvAq2Yhq-QL3Ne4VpvWG_TfTTo0YRSUsnIAEDtrRL96JLBupieh8mcaT0-gNcnpim9gCl-pVY-mfhK-FU6l6fan3SXEDG-ZYNBephWX2Haj2GSm5ssZQd1vI4-YNgYmPFtwLjV3x54mwZaEsHYJU8NbJxXKHekG3f8KF_SwBrQ2tsdxdtNviZ4F_NFK7huDN3iJ55U8RDcUGgch4dGghwWvoLcZOmwtovzJ3bijAGPlSLMU9EQMCqEVh-oWGAO56s" }
     ];
+    var SAUCES = ["Doce de Leite", "Nutella"];
+    var DELIVERY_FEE = 100;
+    var WA_ICON = '<svg width="18" height="18" viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/></svg>';
 
-    const SAUCES = ["Doce de Leite", "Nutella"];
-    const DELIVERY_FEE = 100;
+    var state = { step: 0, cartItems: [], name: '', phone: '', addr: '', notes: '', errs: {} };
 
-    // cartItems: array of { uid, id, sauce }
-    // Each press of "+" adds a NEW independent entry — own sauce
-    // Each press of "−" removes the LAST entry for that product
-
-    function Form() {
-      const [step, setStep]       = useState(0);
-      const [cartItems, setCart]  = useState([]); // [{ uid, id, sauce }]
-      const [name, setName]       = useState("");
-      const [phone, setPhone]     = useState("");
-      const [addr, setAddr]       = useState("");
-      const [notes, setNotes]     = useState("");
-      const [errs, setErrs]       = useState({});
-
-      const getQty   = id => cartItems.filter(i => i.id === id).length;
-      const getGroup = id => cartItems.filter(i => i.id === id);
-      const subtotal = cartItems.reduce((s, i) => {
-        const p = PRODS.find(p => p.id === i.id);
+    function getQty(id)   { return state.cartItems.filter(function(i){ return i.id === id; }).length; }
+    function getGroup(id) { return state.cartItems.filter(function(i){ return i.id === id; }); }
+    function getSubtotal() {
+      return state.cartItems.reduce(function(s, i) {
+        var p = PRODS.find(function(p){ return p.id === i.id; });
         return s + (p ? p.price : 0);
       }, 0);
-      const total = subtotal + (cartItems.length > 0 ? DELIVERY_FEE : 0);
-      const count = cartItems.length;
+    }
+    function getTotal() { return getSubtotal() + (state.cartItems.length > 0 ? DELIVERY_FEE : 0); }
 
-      const addItem = (id) => {
-        const prod = PRODS.find(p => p.id === id);
-        setCart(prev => [...prev, {
-          uid: Date.now() + Math.random(),
-          id,
-          sauce: "Doce de Leite"
-        }]);
-      };
-
-      const removeItem = (id) => {
-        setCart(prev => {
-          const idx = [...prev].reverse().findIndex(i => i.id === id);
-          if (idx === -1) return prev;
-          const realIdx = prev.length - 1 - idx;
-          return prev.filter((_, i) => i !== realIdx);
+    function addItem(id) {
+      state.cartItems = state.cartItems.concat([{ uid: String(Date.now() + Math.random()), id: id, sauce: "Doce de Leite" }]);
+      render();
+    }
+    function removeItem(id) {
+      var arr = state.cartItems;
+      var revIdx = arr.slice().reverse().findIndex(function(i){ return i.id === id; });
+      if (revIdx === -1) return;
+      var realIdx = arr.length - 1 - revIdx;
+      state.cartItems = arr.filter(function(_, i){ return i !== realIdx; });
+      render();
+    }
+    function updateSauce(uid, sauce) {
+      state.cartItems = state.cartItems.map(function(i){ return i.uid === uid ? Object.assign({}, i, { sauce: sauce }) : i; });
+      render();
+    }
+    function syncInputs() {
+      var n = document.getElementById('ord_name');
+      var p = document.getElementById('ord_phone');
+      var a = document.getElementById('ord_addr');
+      var o = document.getElementById('ord_notes');
+      if (n) state.name  = n.value;
+      if (p) state.phone = p.value;
+      if (a) state.addr  = a.value;
+      if (o) state.notes = o.value;
+    }
+    function goStep(n) { syncInputs(); state.step = n; render(); }
+    function validate() {
+      syncInputs();
+      var e = {};
+      if (!state.name.trim())  e.name  = 'Obrigatório';
+      if (!state.phone.trim() || state.phone.trim().length < 7) e.phone = 'Número inválido';
+      if (!state.addr.trim())  e.addr  = 'Obrigatório';
+      state.errs = e;
+      if (!Object.keys(e).length) state.step = 2;
+      render();
+    }
+    function sendWA() {
+      var total = getTotal();
+      var msg = '*¡Hola Churros! — Nova Encomenda*\n\n';
+      msg += '*' + state.name + '*\nTel: ' + state.phone + '\nMorada: ' + state.addr + '\n\n';
+      msg += '*Pedido:*\n';
+      PRODS.forEach(function(p) {
+        getGroup(p.id).forEach(function(item) {
+          msg += '• ' + p.name + ' ' + p.desc + (item.sauce ? ' — ' + item.sauce : '') + ' — ' + p.price.toLocaleString() + ' MT\n';
         });
-      };
-
-      const updateSauce = (uid, sauce) => {
-        setCart(prev => prev.map(i => i.uid === uid ? {...i, sauce} : i));
-      };
-
-      const validate2 = () => {
-        const e = {};
-        if (!name.trim()) e.name = "Obrigatório";
-        if (!phone.trim() || phone.trim().length < 7) e.phone = "Número inválido";
-        if (!addr.trim()) e.addr = "Obrigatório";
-        setErrs(e);
-        return Object.keys(e).length === 0;
-      };
-
-      const sendWA = () => {
-        let msg = `*¡Hola Churros! — Nova Encomenda*\n\n`;
-        msg += `*${name}*\nTel: ${phone}\nMorada: ${addr}\n\n`;
-        msg += `*Pedido:*\n`;
-        // Group by product for cleaner message
-        PRODS.forEach(p => {
-          const group = getGroup(p.id);
-          if (!group.length) return;
-          group.forEach((item, idx) => {
-            const sauceStr = item.sauce ? ` — ${item.sauce}` : "";
-            msg += `• ${p.name} ${p.desc}${sauceStr} — ${p.price.toLocaleString()} MT\n`;
-          });
-        });
-        msg += `\nEntrega: ${DELIVERY_FEE} MT`;
-        msg += `\n*Total: ${total.toLocaleString()} MT*`;
-        if (notes.trim()) msg += `\n\nObs: ${notes}`;
-
-        window.location.href = `https://wa.me/258852690365?text=${encodeURIComponent(msg)}`;
-
-        fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customer_name: name, phone, address: addr,
-            items: cartItems.map(i => {
-              const p = PRODS.find(p => p.id === i.id);
-              return { id: i.id, name: p.name, desc: p.desc, price: p.price, qty: 1, sauce: i.sauce };
-            }),
-            sauce: cartItems.filter(i=>i.sauce).map(i=>i.sauce).join(", ") || null,
-            total, notes
-          })
-        }).catch(e => console.warn('DB save failed:', e));
-      };
-
-      const tabs = ["Produtos","Entrega","Confirmar"];
-
-      return (
-        <div className="order-form-wrap">
-          <div className="form-tabs">
-            {tabs.map((t,i)=>(
-              <div key={i} className={`form-tab ${step===i?"active":""}`} onClick={()=>step>i&&setStep(i)}>
-                <span style={{marginRight:6,opacity:.5}}>{i+1}.</span>{t}
-              </div>
-            ))}
-          </div>
-          <div className="form-body">
-
-            {/* STEP 0 — Produtos */}
-            <div className={`form-step-content ${step===0?"active":""}`}>
-              <div className="product-grid">
-                {PRODS.map(p => {
-                  const q = getQty(p.id);
-                  const group = getGroup(p.id);
-                  return (
-                    <div key={p.id} className={`prod-row ${q>0?"on":""}`}
-                      style={{display:"flex", flexDirection:"column", padding:0}}
-                      onClick={()=>q===0&&addItem(p.id)}>
-
-                      {/* Main row: image / info / price / qty controls */}
-                      <div style={{display:"grid", gridTemplateColumns:"72px 1fr auto", alignItems:"center", width:"100%"}}>
-                        <div className="prod-row-img" style={{width:72,height:72}}>
-                          <img src={p.img} alt={p.name} />
-                        </div>
-                        <div className="prod-row-info">
-                          <div className="prod-name">{p.name}</div>
-                          <div className="prod-desc">{p.desc}</div>
-                        </div>
-                        <div style={{display:"flex", alignItems:"center", gap:6, paddingRight:12}} onClick={e=>e.stopPropagation()}>
-                          <span className="prod-price" style={{fontSize:17}}>{p.price} MT</span>
-                          {q > 0
-                            ? <div className="prod-qty-ctrl" style={{gap:6}}>
-                                <button className="qty-btn" onClick={()=>removeItem(p.id)}>−</button>
-                                <span className="qty-num">{q}</span>
-                                <button className="qty-btn" onClick={()=>addItem(p.id)}>+</button>
-                              </div>
-                            : <div className="prod-qty-ctrl">
-                                <button className="qty-btn" style={{fontSize:15}} onClick={()=>addItem(p.id)}>+</button>
-                              </div>
-                          }
-                        </div>
-                      </div>
-
-                      {/* Per-unit sauce selectors for Espanhóis */}
-                      {q > 0 && (
-                        <div style={{borderTop:"1px solid rgba(61,30,8,0.08)", padding:"8px 12px 10px"}}
-                          onClick={e=>e.stopPropagation()}>
-                          {group.map((item, idx) => (
-                            <div key={item.uid} style={{display:"flex", alignItems:"center", gap:6, marginTop: idx>0?6:0}}>
-                              <span style={{fontSize:11, fontWeight:700, color:"var(--muted)", minWidth:52, letterSpacing:"0.05em"}}>
-                                {q > 1 ? `#${idx+1}` : "Molho"}
-                              </span>
-                              {SAUCES.map(s => (
-                                <button key={s} onClick={()=>updateSauce(item.uid, s)}
-                                  style={{
-                                    flex:1, padding:"6px 4px",
-                                    border: item.sauce===s ? "1.5px solid var(--brown)" : "1px solid rgba(61,30,8,0.15)",
-                                    background: item.sauce===s ? "var(--warm)" : "transparent",
-                                    color: item.sauce===s ? "var(--brown)" : "var(--muted)",
-                                    fontSize:12, fontWeight:600, cursor:"pointer", transition:"all 0.15s"
-                                  }}>
-                                  {s}
-                                </button>
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {count > 0 && (
-                <div className="cart-bar" style={{flexDirection:"column", gap:4, alignItems:"stretch"}}>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                    <span className="cart-label">{count} {count===1?"item":"itens"}</span>
-                    <span style={{fontSize:13, color:"rgba(251,245,230,0.55)"}}>Subtotal: {subtotal.toLocaleString()} MT</span>
-                  </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                    <span style={{fontSize:12, color:"rgba(251,245,230,0.55)", letterSpacing:"0.06em", textTransform:"uppercase", fontWeight:600}}>Entrega Maputo</span>
-                    <span style={{fontSize:14, color:"rgba(251,245,230,0.7)", fontWeight:600}}>{DELIVERY_FEE} MT</span>
-                  </div>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", borderTop:"1px solid rgba(245,197,24,0.2)", paddingTop:8, marginTop:2}}>
-                    <span className="cart-label">Total</span>
-                    <span className="cart-total">{total.toLocaleString()} MT</span>
-                  </div>
-                </div>
-              )}
-
-              <div className="form-actions">
-                <button className="btn-next" disabled={count===0} onClick={()=>count>0&&setStep(1)}>
-                  Continuar →
-                </button>
-              </div>
-            </div>
-
-            {/* STEP 1 — Entrega */}
-            <div className={`form-step-content ${step===1?"active":""}`}>
-              <div className="f-row">
-                <div className="f-group">
-                  <label className="f-label">Nome</label>
-                  <input className="f-input" value={name} onChange={e=>{setName(e.target.value);setErrs(p=>({...p,name:null}))}} placeholder="Seu nome completo" style={errs.name?{borderColor:"#c0392b"}:{}}/>
-                  {errs.name && <div className="f-error" style={{display:"block"}}>{errs.name}</div>}
-                </div>
-                <div className="f-group">
-                  <label className="f-label">Telefone / WhatsApp</label>
-                  <input className="f-input" value={phone} onChange={e=>{setPhone(e.target.value);setErrs(p=>({...p,phone:null}))}} placeholder="84 000 0000" style={errs.phone?{borderColor:"#c0392b"}:{}}/>
-                  {errs.phone && <div className="f-error" style={{display:"block"}}>{errs.phone}</div>}
-                </div>
-              </div>
-              <div className="f-group">
-                <label className="f-label">Morada de entrega</label>
-                <textarea className="f-textarea" value={addr} onChange={e=>{setAddr(e.target.value);setErrs(p=>({...p,addr:null}))}} placeholder="Av. exemplo, nº, bairro, Maputo" style={errs.addr?{borderColor:"#c0392b"}:{}}/>
-                {errs.addr && <div className="f-error" style={{display:"block"}}>{errs.addr}</div>}
-              </div>
-              <div className="f-group">
-                <label className="f-label">Observações <span style={{fontWeight:400,opacity:.6}}>(opcional)</span></label>
-                <textarea className="f-textarea" value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Alergias, instruções especiais..." style={{minHeight:70}}/>
-              </div>
-              <div className="form-actions">
-                <button className="btn-back" onClick={()=>setStep(0)}>← Voltar</button>
-                <button className="btn-next" onClick={()=>validate2()&&setStep(2)}>Confirmar →</button>
-              </div>
-            </div>
-
-            {/* STEP 2 — Confirmar */}
-            <div className={`form-step-content ${step===2?"active":""}`}>
-              <div className="summary-block">
-                <div className="summary-head">Pedido</div>
-                {PRODS.map(p => {
-                  const group = getGroup(p.id);
-                  if (!group.length) return null;
-                  return group.map((item, idx) => (
-                    <div key={item.uid} className="sum-row">
-                      <span>
-                        {p.name} {p.desc}
-                        {item.sauce && <span style={{color:"var(--muted)",fontSize:12}}> — {item.sauce}</span>}
-                      </span>
-                      <span>{p.price.toLocaleString()} MT</span>
-                    </div>
-                  ));
-                })}
-                <div className="sum-row">
-                  <span style={{color:"var(--muted)"}}>Entrega Maputo</span>
-                  <span>{DELIVERY_FEE} MT</span>
-                </div>
-                <div className="sum-total">
-                  <span className="sum-total-label">Total</span>
-                  <span className="sum-total-val">{total.toLocaleString()} MT</span>
-                </div>
-              </div>
-              <div className="summary-block">
-                <div className="summary-head">Entrega</div>
-                <div className="sum-row"><span>Nome</span><span>{name}</span></div>
-                <div className="sum-row"><span>Telefone</span><span>{phone}</span></div>
-                <div className="sum-row"><span>Morada</span><span style={{maxWidth:200,textAlign:"right"}}>{addr}</span></div>
-                {notes && <div className="sum-row"><span>Obs.</span><span style={{maxWidth:200,textAlign:"right"}}>{notes}</span></div>}
-              </div>
-              <div style={{padding:"14px 18px",background:"rgba(37,211,102,0.07)",border:"1px solid rgba(37,211,102,0.2)",fontSize:13,color:"#2a7a4a",fontWeight:600,marginBottom:4}}>
-                Será aberto o WhatsApp com o pedido já formatado.
-              </div>
-              <div className="form-actions">
-                <button className="btn-back" onClick={()=>setStep(1)}>← Voltar</button>
-                <button className="btn-wa" onClick={sendWA}>
-                  <svg width="18" height="18" viewBox="0 0 32 32" fill="currentColor">
-                    <path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/>
-                  </svg>
-                  Enviar pelo WhatsApp
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      );
+      });
+      msg += '\nEntrega: ' + DELIVERY_FEE + ' MT';
+      msg += '\n*Total: ' + total.toLocaleString() + ' MT*';
+      if (state.notes.trim()) msg += '\n\nObs: ' + state.notes;
+      window.location.href = 'https://wa.me/258852690365?text=' + encodeURIComponent(msg);
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer_name: state.name, phone: state.phone, address: state.addr,
+          items: state.cartItems.map(function(i) {
+            var p = PRODS.find(function(p){ return p.id === i.id; });
+            return { id: i.id, name: p.name, desc: p.desc, price: p.price, qty: 1, sauce: i.sauce };
+          }),
+          sauce: state.cartItems.filter(function(i){ return i.sauce; }).map(function(i){ return i.sauce; }).join(', ') || null,
+          total: total, notes: state.notes
+        })
+      }).catch(function(e){ console.warn('DB:', e); });
     }
 
-    ReactDOM.createRoot(document.getElementById("orderFormMount")).render(<Form />);
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function buildStep0() {
+      var count = state.cartItems.length;
+      var subtotal = getSubtotal();
+      var total = getTotal();
+      var html = '<div class="product-grid">';
+      PRODS.forEach(function(p) {
+        var q = getQty(p.id);
+        var group = getGroup(p.id);
+        html += '<div class="prod-row' + (q > 0 ? ' on' : '') + '" style="display:flex;flex-direction:column;padding:0;"' + (q === 0 ? ' onclick="window._of.add(\'' + p.id + '\')"' : '') + '>';
+        html += '<div style="display:grid;grid-template-columns:72px 1fr auto;align-items:center;width:100%;">';
+        html += '<div class="prod-row-img" style="width:72px;height:72px;"><img src="' + p.img + '" alt="' + esc(p.name) + '" loading="lazy"/></div>';
+        html += '<div class="prod-row-info"><div class="prod-name">' + esc(p.name) + '</div><div class="prod-desc">' + esc(p.desc) + '</div></div>';
+        html += '<div style="display:flex;align-items:center;gap:6px;padding-right:12px;" onclick="event.stopPropagation()">';
+        html += '<span class="prod-price" style="font-size:17px">' + p.price + ' MT</span>';
+        if (q > 0) {
+          html += '<div class="prod-qty-ctrl" style="gap:6px;"><button class="qty-btn" onclick="window._of.remove(\'' + p.id + '\')">&#8722;</button><span class="qty-num">' + q + '</span><button class="qty-btn" onclick="window._of.add(\'' + p.id + '\')">+</button></div>';
+        } else {
+          html += '<div class="prod-qty-ctrl"><button class="qty-btn" style="font-size:15px" onclick="window._of.add(\'' + p.id + '\')">+</button></div>';
+        }
+        html += '</div></div>';
+        if (q > 0) {
+          html += '<div style="border-top:1px solid rgba(61,30,8,0.08);padding:8px 12px 10px;" onclick="event.stopPropagation()">';
+          group.forEach(function(item, idx) {
+            html += '<div style="display:flex;align-items:center;gap:6px;' + (idx > 0 ? 'margin-top:6px;' : '') + '">';
+            html += '<span style="font-size:11px;font-weight:700;color:var(--muted);min-width:52px;letter-spacing:0.05em;">' + (q > 1 ? '#' + (idx + 1) : 'Molho') + '</span>';
+            SAUCES.forEach(function(s) {
+              var sel = item.sauce === s;
+              html += '<button onclick="window._of.sauce(\'' + item.uid + '\',\'' + esc(s) + '\')" style="flex:1;padding:6px 4px;border:' + (sel ? '1.5px solid var(--brown)' : '1px solid rgba(61,30,8,0.15)') + ';background:' + (sel ? 'var(--warm)' : 'transparent') + ';color:' + (sel ? 'var(--brown)' : 'var(--muted)') + ';font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;">' + esc(s) + '</button>';
+            });
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+      html += '</div>';
+      if (count > 0) {
+        html += '<div class="cart-bar" style="flex-direction:column;gap:4px;align-items:stretch;">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;"><span class="cart-label">' + count + ' ' + (count === 1 ? 'item' : 'itens') + '</span><span style="font-size:13px;color:rgba(251,245,230,0.55);">Subtotal: ' + subtotal.toLocaleString() + ' MT</span></div>';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12px;color:rgba(251,245,230,0.55);letter-spacing:0.06em;text-transform:uppercase;font-weight:600;">Entrega Maputo</span><span style="font-size:14px;color:rgba(251,245,230,0.7);font-weight:600;">' + DELIVERY_FEE + ' MT</span></div>';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(245,197,24,0.2);padding-top:8px;margin-top:2px;"><span class="cart-label">Total</span><span class="cart-total">' + total.toLocaleString() + ' MT</span></div>';
+        html += '</div>';
+      }
+      html += '<div class="form-actions"><button class="btn-next"' + (count === 0 ? ' disabled' : '') + ' onclick="window._of.goStep(1)">Continuar &#8594;</button></div>';
+      return html;
+    }
+
+    function buildStep1() {
+      var e = state.errs;
+      var html = '<div class="f-row">';
+      html += '<div class="f-group"><label class="f-label">Nome</label><input class="f-input" id="ord_name" value="' + esc(state.name) + '" placeholder="Seu nome completo"' + (e.name ? ' style="border-color:#c0392b"' : '') + '/>' + (e.name ? '<div class="f-error" style="display:block">' + e.name + '</div>' : '') + '</div>';
+      html += '<div class="f-group"><label class="f-label">Telefone / WhatsApp</label><input class="f-input" id="ord_phone" value="' + esc(state.phone) + '" placeholder="84 000 0000"' + (e.phone ? ' style="border-color:#c0392b"' : '') + '/>' + (e.phone ? '<div class="f-error" style="display:block">' + e.phone + '</div>' : '') + '</div>';
+      html += '</div>';
+      html += '<div class="f-group"><label class="f-label">Morada de entrega</label><textarea class="f-textarea" id="ord_addr" placeholder="Av. exemplo, nº, bairro, Maputo"' + (e.addr ? ' style="border-color:#c0392b"' : '') + '>' + esc(state.addr) + '</textarea>' + (e.addr ? '<div class="f-error" style="display:block">' + e.addr + '</div>' : '') + '</div>';
+      html += '<div class="f-group"><label class="f-label">Observações <span style="font-weight:400;opacity:.6">(opcional)</span></label><textarea class="f-textarea" id="ord_notes" placeholder="Alergias, instruções especiais..." style="min-height:70px">' + esc(state.notes) + '</textarea></div>';
+      html += '<div class="form-actions"><button class="btn-back" onclick="window._of.goStep(0)">&#8592; Voltar</button><button class="btn-next" onclick="window._of.validate()">Confirmar &#8594;</button></div>';
+      return html;
+    }
+
+    function buildStep2() {
+      var total = getTotal();
+      var html = '<div class="summary-block"><div class="summary-head">Pedido</div>';
+      PRODS.forEach(function(p) {
+        getGroup(p.id).forEach(function(item) {
+          html += '<div class="sum-row"><span>' + esc(p.name) + ' ' + esc(p.desc) + (item.sauce ? '<span style="color:var(--muted);font-size:12px"> — ' + esc(item.sauce) + '</span>' : '') + '</span><span>' + p.price.toLocaleString() + ' MT</span></div>';
+        });
+      });
+      html += '<div class="sum-row"><span style="color:var(--muted)">Entrega Maputo</span><span>' + DELIVERY_FEE + ' MT</span></div>';
+      html += '<div class="sum-total"><span class="sum-total-label">Total</span><span class="sum-total-val">' + total.toLocaleString() + ' MT</span></div>';
+      html += '</div>';
+      html += '<div class="summary-block"><div class="summary-head">Entrega</div>';
+      html += '<div class="sum-row"><span>Nome</span><span>' + esc(state.name) + '</span></div>';
+      html += '<div class="sum-row"><span>Telefone</span><span>' + esc(state.phone) + '</span></div>';
+      html += '<div class="sum-row"><span>Morada</span><span style="max-width:200px;text-align:right">' + esc(state.addr) + '</span></div>';
+      if (state.notes.trim()) html += '<div class="sum-row"><span>Obs.</span><span style="max-width:200px;text-align:right">' + esc(state.notes) + '</span></div>';
+      html += '</div>';
+      html += '<div style="padding:14px 18px;background:rgba(37,211,102,0.07);border:1px solid rgba(37,211,102,0.2);font-size:13px;color:#2a7a4a;font-weight:600;margin-bottom:4px;">Será aberto o WhatsApp com o pedido já formatado.</div>';
+      html += '<div class="form-actions"><button class="btn-back" onclick="window._of.goStep(1)">&#8592; Voltar</button><button class="btn-wa" onclick="window._of.sendWA()">' + WA_ICON + ' Enviar pelo WhatsApp</button></div>';
+      return html;
+    }
+
+    function render() {
+      var mount = document.getElementById('orderFormMount');
+      if (!mount) return;
+      var tabs = ['Produtos', 'Entrega', 'Confirmar'];
+      var html = '<div class="order-form-wrap"><div class="form-tabs">';
+      tabs.forEach(function(t, i) {
+        html += '<div class="form-tab' + (state.step === i ? ' active' : '') + '"' + (state.step > i ? ' onclick="window._of.goStep(' + i + ')"' : '') + '><span style="margin-right:6px;opacity:.5">' + (i + 1) + '.</span>' + t + '</div>';
+      });
+      html += '</div><div class="form-body">';
+      html += '<div class="form-step-content' + (state.step === 0 ? ' active' : '') + '">' + (state.step === 0 ? buildStep0() : '') + '</div>';
+      html += '<div class="form-step-content' + (state.step === 1 ? ' active' : '') + '">' + (state.step === 1 ? buildStep1() : '') + '</div>';
+      html += '<div class="form-step-content' + (state.step === 2 ? ' active' : '') + '">' + (state.step === 2 ? buildStep2() : '') + '</div>';
+      html += '</div></div>';
+      mount.innerHTML = html;
+    }
+
+    window._of = { add: addItem, remove: removeItem, sauce: updateSauce, goStep: goStep, validate: validate, sendWA: sendWA };
+    document.addEventListener('DOMContentLoaded', render);
+  })();
   </script>
 
   <!-- EVENT FORM LOGIC -->
@@ -1717,7 +1622,7 @@
       });
     }
 
-    async function submitEvent() {
+    function submitEvent() {
       const btn = document.getElementById('evSubmitBtn');
       const errEl = document.getElementById('evFormError');
       errEl.style.display = 'none';
@@ -1743,29 +1648,19 @@
       btn.disabled = true;
       btn.textContent = 'A enviar...';
 
-      try {
-        const res = await fetch('/api/events', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contact_name: name, phone, event_type, event_date, location, start_time, end_time, participants: parseInt(participants), service, notes })
-        });
-        const data = await res.json();
+      // Build WhatsApp message and navigate immediately (preserves user gesture on mobile)
+      const msg = `*¡Hola Churros! — Pedido de Evento*\n\n*${name}*\nTel: ${phone}\n\nTipo: ${event_type}\nData: ${event_date}\nLocal: ${location}\nHorário: ${start_time} — ${end_time}\nParticipantes: ${participants}\nServiço: ${service}${notes ? `\n\nObs: ${notes}` : ''}`;
+      window.location.href = `https://wa.me/258852690365?text=${encodeURIComponent(msg)}`;
 
-        if (data.success) {
-          // Send WhatsApp
-          const msg = `*¡Hola Churros! — Pedido de Evento*\n\n👤 *${name}*\n📱 ${phone}\n\n🎉 *Tipo:* ${event_type}\n📅 *Data:* ${event_date}\n📍 *Local:* ${location}\n⏰ *Horário:* ${start_time} — ${end_time}\n👥 *Participantes:* ${participants}\n🛎️ *Serviço:* ${service}${notes ? `\n\n📝 ${notes}` : ''}`;
-          window.open(`https://wa.me/258852690365?text=${encodeURIComponent(msg)}`, '_blank');
-          document.getElementById('eventFormFields').style.display = 'none';
-          document.getElementById('eventSuccess').style.display = 'block';
-        } else {
-          throw new Error(data.error || 'Erro desconhecido');
-        }
-      } catch(err) {
-        errEl.textContent = 'Erro ao enviar. Tente novamente ou contacte-nos pelo WhatsApp.';
-        errEl.style.display = 'block';
-        btn.disabled = false;
-        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/></svg> Enviar Solicitação`;
-      }
+      // Fire-and-forget DB save
+      fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contact_name: name, phone, event_type, event_date, location, start_time, end_time, participants: parseInt(participants), service, notes })
+      }).catch(function(e){ console.warn('DB:', e); });
+
+      document.getElementById('eventFormFields').style.display = 'none';
+      document.getElementById('eventSuccess').style.display = 'block';
     }
 
     function resetEventForm() {
