@@ -1430,34 +1430,51 @@
     ];
 
     const SAUCES = ["Doce de Leite", "Nutella"];
+    const DELIVERY_FEE = 100;
+
+    // cartItems: array of { uid, id, sauce }
+    // Each press of "+" adds a NEW independent entry — own sauce
+    // Each press of "−" removes the LAST entry for that product
 
     function Form() {
-      const [step, setStep]   = useState(0);
-      const [cart, setCart]   = useState({});
-      const [sauces, setSauces] = useState({}); // { e4: "Doce de Leite", e6: "Nutella" }
-      const [name, setName]   = useState("");
-      const [phone, setPhone] = useState("");
-      const [addr, setAddr]   = useState("");
-      const [notes, setNotes] = useState("");
-      const [errs, setErrs]   = useState({});
+      const [step, setStep]       = useState(0);
+      const [cartItems, setCart]  = useState([]); // [{ uid, id, sauce }]
+      const [name, setName]       = useState("");
+      const [phone, setPhone]     = useState("");
+      const [addr, setAddr]       = useState("");
+      const [notes, setNotes]     = useState("");
+      const [errs, setErrs]       = useState({});
 
-      const items = PRODS.filter(p => (cart[p.id]||0) > 0);
-      const total = items.reduce((s,p) => s + p.price*(cart[p.id]||0), 0);
-      const count = Object.values(cart).reduce((a,b)=>a+b,0);
+      const getQty   = id => cartItems.filter(i => i.id === id).length;
+      const getGroup = id => cartItems.filter(i => i.id === id);
+      const subtotal = cartItems.reduce((s, i) => {
+        const p = PRODS.find(p => p.id === i.id);
+        return s + (p ? p.price : 0);
+      }, 0);
+      const total = subtotal + (cartItems.length > 0 ? DELIVERY_FEE : 0);
+      const count = cartItems.length;
 
-      const setQty = (id, delta) => {
-        setCart(prev => {
-          const next = Math.max(0, (prev[id]||0) + delta);
-          return {...prev, [id]: next};
-        });
-        // set default sauce when first added
+      const addItem = (id) => {
         const prod = PRODS.find(p => p.id === id);
-        if (prod && prod.group === "esp" && delta > 0) {
-          setSauces(prev => prev[id] ? prev : {...prev, [id]: "Doce de Leite"});
-        }
+        setCart(prev => [...prev, {
+          uid: Date.now() + Math.random(),
+          id,
+          sauce: prod.group === "esp" ? "Doce de Leite" : null
+        }]);
       };
 
-      const setSauce = (id, s) => setSauces(prev => ({...prev, [id]: s}));
+      const removeItem = (id) => {
+        setCart(prev => {
+          const idx = [...prev].reverse().findIndex(i => i.id === id);
+          if (idx === -1) return prev;
+          const realIdx = prev.length - 1 - idx;
+          return prev.filter((_, i) => i !== realIdx);
+        });
+      };
+
+      const updateSauce = (uid, sauce) => {
+        setCart(prev => prev.map(i => i.uid === uid ? {...i, sauce} : i));
+      };
 
       const validate2 = () => {
         const e = {};
@@ -1469,32 +1486,34 @@
       };
 
       const sendWA = () => {
-        // Build message synchronously — before any async call
         let msg = `*¡Hola Churros! — Nova Encomenda*\n\n`;
         msg += `*${name}*\nTel: ${phone}\nMorada: ${addr}\n\n`;
         msg += `*Pedido:*\n`;
-        items.forEach(p => {
-          const s = p.group === "esp" ? ` (${sauces[p.id] || "Doce de Leite"})` : "";
-          msg += `• ${p.name} ${p.desc}${s} ×${cart[p.id]} — ${(p.price*cart[p.id]).toLocaleString()} MT\n`;
+        // Group by product for cleaner message
+        PRODS.forEach(p => {
+          const group = getGroup(p.id);
+          if (!group.length) return;
+          group.forEach((item, idx) => {
+            const sauceStr = item.sauce ? ` — ${item.sauce}` : "";
+            msg += `• ${p.name} ${p.desc}${sauceStr} — ${p.price.toLocaleString()} MT\n`;
+          });
         });
+        msg += `\nEntrega: ${DELIVERY_FEE} MT`;
         msg += `\n*Total: ${total.toLocaleString()} MT*`;
         if (notes.trim()) msg += `\n\nObs: ${notes}`;
 
-        // Open WhatsApp immediately (must be synchronous — before any await)
         window.location.href = `https://wa.me/258852690365?text=${encodeURIComponent(msg)}`;
 
-        // Save to DB in background (fire-and-forget)
         fetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             customer_name: name, phone, address: addr,
-            items: items.map(p=>({
-              id: p.id, name: p.name, desc: p.desc, price: p.price,
-              qty: cart[p.id],
-              sauce: p.group === "esp" ? (sauces[p.id] || "Doce de Leite") : null
-            })),
-            sauce: items.filter(p=>p.group==="esp").map(p=>sauces[p.id]||"Doce de Leite").join(", ") || null,
+            items: cartItems.map(i => {
+              const p = PRODS.find(p => p.id === i.id);
+              return { id: i.id, name: p.name, desc: p.desc, price: p.price, qty: 1, sauce: i.sauce };
+            }),
+            sauce: cartItems.filter(i=>i.sauce).map(i=>i.sauce).join(", ") || null,
             total, notes
           })
         }).catch(e => console.warn('DB save failed:', e));
@@ -1517,14 +1536,14 @@
             <div className={`form-step-content ${step===0?"active":""}`}>
               <div className="product-grid">
                 {PRODS.map(p => {
-                  const q = cart[p.id]||0;
-                  const sc = sauces[p.id] || "Doce de Leite";
+                  const q = getQty(p.id);
+                  const group = getGroup(p.id);
                   return (
                     <div key={p.id} className={`prod-row ${q>0?"on":""}`}
-                      style={{flexDirection:"column", display:"flex", padding:0}}
-                      onClick={()=>q===0&&setQty(p.id,1)}>
+                      style={{display:"flex", flexDirection:"column", padding:0}}
+                      onClick={()=>q===0&&addItem(p.id)}>
 
-                      {/* Main row */}
+                      {/* Main row: image / info / price / qty controls */}
                       <div style={{display:"grid", gridTemplateColumns:"72px 1fr auto", alignItems:"center", width:"100%"}}>
                         <div className="prod-row-img" style={{width:72,height:72}}>
                           <img src={p.img} alt={p.name} />
@@ -1533,40 +1552,43 @@
                           <div className="prod-name">{p.name}</div>
                           <div className="prod-desc">{p.desc}</div>
                         </div>
-                        <div style={{display:"flex", alignItems:"center", gap:8, paddingRight:12}}>
-                          <span className="prod-price" style={{fontSize:18}}>{p.price} MT</span>
+                        <div style={{display:"flex", alignItems:"center", gap:6, paddingRight:12}} onClick={e=>e.stopPropagation()}>
+                          <span className="prod-price" style={{fontSize:17}}>{p.price} MT</span>
                           {q > 0
-                            ? <div className="prod-qty-ctrl" style={{gap:6}} onClick={e=>e.stopPropagation()}>
-                                <button className="qty-btn" onClick={()=>setQty(p.id,-1)}>−</button>
+                            ? <div className="prod-qty-ctrl" style={{gap:6}}>
+                                <button className="qty-btn" onClick={()=>removeItem(p.id)}>−</button>
                                 <span className="qty-num">{q}</span>
-                                <button className="qty-btn" onClick={()=>setQty(p.id,+1)}>+</button>
+                                <button className="qty-btn" onClick={()=>addItem(p.id)}>+</button>
                               </div>
-                            : <div className="prod-qty-ctrl" onClick={e=>e.stopPropagation()}>
-                                <button className="qty-btn" style={{fontSize:15}} onClick={()=>setQty(p.id,1)}>+</button>
+                            : <div className="prod-qty-ctrl">
+                                <button className="qty-btn" style={{fontSize:15}} onClick={()=>addItem(p.id)}>+</button>
                               </div>
                           }
                         </div>
                       </div>
 
-                      {/* Sauce selector — only for Espanhóis when in cart */}
+                      {/* Per-unit sauce selectors for Espanhóis */}
                       {q > 0 && p.group === "esp" && (
-                        <div style={{
-                          display:"flex", gap:6, padding:"8px 12px 12px",
-                          borderTop:"1px solid rgba(61,30,8,0.08)"
-                        }} onClick={e=>e.stopPropagation()}>
-                          <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:"var(--muted)",marginRight:4,alignSelf:"center"}}>Molho:</span>
-                          {SAUCES.map(s => (
-                            <button key={s} onClick={()=>setSauce(p.id, s)}
-                              style={{
-                                flex:1, padding:"7px 4px",
-                                border: sc===s ? "1.5px solid var(--brown)" : "1px solid rgba(61,30,8,0.15)",
-                                background: sc===s ? "var(--warm)" : "transparent",
-                                color: sc===s ? "var(--brown)" : "var(--muted)",
-                                fontSize:12, fontWeight:600, cursor:"pointer",
-                                transition:"all 0.15s"
-                              }}>
-                              {s}
-                            </button>
+                        <div style={{borderTop:"1px solid rgba(61,30,8,0.08)", padding:"8px 12px 10px"}}
+                          onClick={e=>e.stopPropagation()}>
+                          {group.map((item, idx) => (
+                            <div key={item.uid} style={{display:"flex", alignItems:"center", gap:6, marginTop: idx>0?6:0}}>
+                              <span style={{fontSize:11, fontWeight:700, color:"var(--muted)", minWidth:52, letterSpacing:"0.05em"}}>
+                                {q > 1 ? `#${idx+1}` : "Molho"}
+                              </span>
+                              {SAUCES.map(s => (
+                                <button key={s} onClick={()=>updateSauce(item.uid, s)}
+                                  style={{
+                                    flex:1, padding:"6px 4px",
+                                    border: item.sauce===s ? "1.5px solid var(--brown)" : "1px solid rgba(61,30,8,0.15)",
+                                    background: item.sauce===s ? "var(--warm)" : "transparent",
+                                    color: item.sauce===s ? "var(--brown)" : "var(--muted)",
+                                    fontSize:12, fontWeight:600, cursor:"pointer", transition:"all 0.15s"
+                                  }}>
+                                  {s}
+                                </button>
+                              ))}
+                            </div>
                           ))}
                         </div>
                       )}
@@ -1575,10 +1597,20 @@
                 })}
               </div>
 
-              {total > 0 && (
-                <div className="cart-bar">
-                  <span className="cart-label">{count} {count===1?"item":"itens"}</span>
-                  <span className="cart-total">{total.toLocaleString()} MT</span>
+              {count > 0 && (
+                <div className="cart-bar" style={{flexDirection:"column", gap:4, alignItems:"stretch"}}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                    <span className="cart-label">{count} {count===1?"item":"itens"}</span>
+                    <span style={{fontSize:13, color:"rgba(251,245,230,0.55)"}}>Subtotal: {subtotal.toLocaleString()} MT</span>
+                  </div>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                    <span style={{fontSize:12, color:"rgba(251,245,230,0.55)", letterSpacing:"0.06em", textTransform:"uppercase", fontWeight:600}}>Entrega Maputo</span>
+                    <span style={{fontSize:14, color:"rgba(251,245,230,0.7)", fontWeight:600}}>{DELIVERY_FEE} MT</span>
+                  </div>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", borderTop:"1px solid rgba(245,197,24,0.2)", paddingTop:8, marginTop:2}}>
+                    <span className="cart-label">Total</span>
+                    <span className="cart-total">{total.toLocaleString()} MT</span>
+                  </div>
                 </div>
               )}
 
@@ -1622,15 +1654,23 @@
             <div className={`form-step-content ${step===2?"active":""}`}>
               <div className="summary-block">
                 <div className="summary-head">Pedido</div>
-                {items.map(p=>(
-                  <div key={p.id} className="sum-row">
-                    <span>
-                      {p.name} {p.desc} ×{cart[p.id]}
-                      {p.group==="esp" && <span style={{color:"var(--muted)",fontSize:12}}> — {sauces[p.id]||"Doce de Leite"}</span>}
-                    </span>
-                    <span>{(p.price*cart[p.id]).toLocaleString()} MT</span>
-                  </div>
-                ))}
+                {PRODS.map(p => {
+                  const group = getGroup(p.id);
+                  if (!group.length) return null;
+                  return group.map((item, idx) => (
+                    <div key={item.uid} className="sum-row">
+                      <span>
+                        {p.name} {p.desc}
+                        {item.sauce && <span style={{color:"var(--muted)",fontSize:12}}> — {item.sauce}</span>}
+                      </span>
+                      <span>{p.price.toLocaleString()} MT</span>
+                    </div>
+                  ));
+                })}
+                <div className="sum-row">
+                  <span style={{color:"var(--muted)"}}>Entrega Maputo</span>
+                  <span>{DELIVERY_FEE} MT</span>
+                </div>
                 <div className="sum-total">
                   <span className="sum-total-label">Total</span>
                   <span className="sum-total-val">{total.toLocaleString()} MT</span>
@@ -1643,11 +1683,7 @@
                 <div className="sum-row"><span>Morada</span><span style={{maxWidth:200,textAlign:"right"}}>{addr}</span></div>
                 {notes && <div className="sum-row"><span>Obs.</span><span style={{maxWidth:200,textAlign:"right"}}>{notes}</span></div>}
               </div>
-              <div style={{
-                padding:"14px 18px", background:"rgba(37,211,102,0.07)",
-                border:"1px solid rgba(37,211,102,0.2)",
-                fontSize:13, color:"#2a7a4a", fontWeight:600, marginBottom:4
-              }}>
+              <div style={{padding:"14px 18px",background:"rgba(37,211,102,0.07)",border:"1px solid rgba(37,211,102,0.2)",fontSize:13,color:"#2a7a4a",fontWeight:600,marginBottom:4}}>
                 Será aberto o WhatsApp com o pedido já formatado.
               </div>
               <div className="form-actions">
