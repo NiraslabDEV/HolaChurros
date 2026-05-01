@@ -4,6 +4,9 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>¡Hola Churros! — Churreirira Artesanal · Maputo</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"/>
+  <link rel="preload" as="image" href="uploads/logo.webp" type="image/webp"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
@@ -824,7 +827,10 @@
   <!-- NAV -->
   <nav id="mainNav">
     <a href="#hero" class="nav-logo-link">
-      <img src="uploads/Hola Churros Logo.png" alt="¡Hola Churros!" style="height:56px;width:auto;object-fit:contain;display:block;" />
+      <picture>
+        <source srcset="uploads/logo.webp" type="image/webp"/>
+        <img src="uploads/logo-opt.png" alt="¡Hola Churros!" style="height:56px;width:auto;object-fit:contain;display:block;" fetchpriority="high"/>
+      </picture>
     </a>
     <ul class="nav-links">
       <li><a href="#menu">Menu</a></li>
@@ -839,7 +845,10 @@
   <!-- HERO -->
   <section id="hero">
     <div class="hero-left">
-      <img src="uploads/Hola Churros Logo.png" alt="¡Hola Churros!" id="heroLogoImg" style="width: clamp(180px, 18vw, 280px); height: auto; object-fit: contain; display: block; margin-bottom: 32px; filter: drop-shadow(0 4px 16px rgba(0,0,0,0.12));" />
+      <picture>
+        <source srcset="uploads/logo.webp" type="image/webp"/>
+        <img src="uploads/logo-opt.png" alt="¡Hola Churros!" id="heroLogoImg" style="width: clamp(180px, 18vw, 280px); height: auto; object-fit: contain; display: block; margin-bottom: 32px; filter: drop-shadow(0 4px 16px rgba(0,0,0,0.12));" fetchpriority="high"/>
+      </picture>
       <div class="hero-label">Artesanal · Maputo · Desde 2020</div>
       <h1 class="hero-h1">
         Churros<br/>
@@ -1283,7 +1292,10 @@
   <!-- FOOTER -->
   <footer id="footer-info">
     <div class="foot-brand">
-      <img src="uploads/Hola Churros Logo.png" alt="¡Hola Churros!" id="footerLogo" style="height:72px;width:auto;object-fit:contain;display:block;margin-bottom:16px;cursor:pointer;" />
+      <picture>
+        <source srcset="uploads/logo.webp" type="image/webp"/>
+        <img src="uploads/logo-opt.png" alt="¡Hola Churros!" id="footerLogo" style="height:72px;width:auto;object-fit:contain;display:block;margin-bottom:16px;cursor:pointer;" loading="lazy"/>
+      </picture>
       <p class="foot-tagline">Churreirira Artesanal em Maputo desde 2020. Feitos com paixão, entregues com calor.</p>
       <div class="foot-social">
         <a href="https://instagram.com/holachurrosmz">Instagram</a>
