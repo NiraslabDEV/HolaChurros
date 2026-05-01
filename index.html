@@ -1417,33 +1417,47 @@
     const { useState } = React;
 
     const PRODS = [
-      { id:"e4",  name:"Churros Espanhóis",  desc:"4 unidades · Doce de Leite ou Nutella", price:250, group:"esp",
+      { id:"e4",  name:"Churros Espanhóis",  desc:"4 unidades", price:250, group:"esp",
         img:"https://lh3.googleusercontent.com/aida-public/AB6AXuDaD6NnH6lkgWS6yotguOVWXuc4WKd2mpxRL76sYH1t-mOmZdYsfl-j1BdjyQ90pkjzxHA5c4b2kA-gRXnGd7pgUoVhCPdF9gaSfLHL3mwriPDp4kpJF9qC20iVNdyL_YrXPdbzoo9AJGOWOFZ2TVxI_hIc8z1_66hOOpx5FqzrdXxBADDPJklI9BV-Kfx2VnYj3yzQM0vgB_wMjt2fxoBTxRjF0muxj3bToRwAJLGm4VdsDq68KbGx5F4TWgqTF3goSBsaqHt6YarU" },
-      { id:"e6",  name:"Churros Espanhóis",  desc:"6 unidades · Doce de Leite ou Nutella", price:320, group:"esp",
+      { id:"e6",  name:"Churros Espanhóis",  desc:"6 unidades", price:320, group:"esp",
         img:"https://lh3.googleusercontent.com/aida-public/AB6AXuDaD6NnH6lkgWS6yotguOVWXuc4WKd2mpxRL76sYH1t-mOmZdYsfl-j1BdjyQ90pkjzxHA5c4b2kA-gRXnGd7pgUoVhCPdF9gaSfLHL3mwriPDp4kpJF9qC20iVNdyL_YrXPdbzoo9AJGOWOFZ2TVxI_hIc8z1_66hOOpx5FqzrdXxBADDPJklI9BV-Kfx2VnYj3yzQM0vgB_wMjt2fxoBTxRjF0muxj3bToRwAJLGm4VdsDq68KbGx5F4TWgqTF3goSBsaqHt6YarU" },
-      { id:"e12", name:"Churros Espanhóis",  desc:"12 unidades · Doce de Leite ou Nutella",price:580, group:"esp",
+      { id:"e12", name:"Churros Espanhóis",  desc:"12 unidades", price:580, group:"esp",
         img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBx80OhPVOAshIcZy-JHrvjSxHUEW4gIzB98_A8-N677lJp0SAw1aDzn39yNCzwFARTjKhdWroXZ7QpvVZ75a4ATDpqsGYmTrRAX3L009DdSRBq6vbRZn-w0o5QopDN2DZNzf4sPnDcLVPr_INzDfawrd6mBH2l-sImEQkhcUKm-A4uPL5XFc_ghDHXBf5bAK3rDvn8nkIlb15_pzLcMjg_g1oMT9ZUQzc6IhyIywwgMiakd7007tE_4Ob0ksK-Ig0HaYwjLAxCtecL" },
-      { id:"r4",  name:"Churros Recheados",  desc:"4 unidades",                             price:600, group:"rech",
+      { id:"r4",  name:"Churros Recheados",  desc:"4 unidades", price:600, group:"rech",
         img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBI3L_-8M_pxu8ZvAq2Yhq-QL3Ne4VpvWG_TfTTo0YRSUsnIAEDtrRL96JLBupieh8mcaT0-gNcnpim9gCl-pVY-mfhK-FU6l6fan3SXEDG-ZYNBephWX2Haj2GSm5ssZQd1vI4-YNgYmPFtwLjV3x54mwZaEsHYJU8NbJxXKHekG3f8KF_SwBrQ2tsdxdtNviZ4F_NFK7huDN3iJ55U8RDcUGgch4dGghwWvoLcZOmwtovzJ3bijAGPlSLMU9EQMCqEVh-oWGAO56s" },
-      { id:"r6",  name:"Churros Recheados",  desc:"6 unidades",                             price:900, group:"rech",
+      { id:"r6",  name:"Churros Recheados",  desc:"6 unidades", price:900, group:"rech",
         img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBI3L_-8M_pxu8ZvAq2Yhq-QL3Ne4VpvWG_TfTTo0YRSUsnIAEDtrRL96JLBupieh8mcaT0-gNcnpim9gCl-pVY-mfhK-FU6l6fan3SXEDG-ZYNBephWX2Haj2GSm5ssZQd1vI4-YNgYmPFtwLjV3x54mwZaEsHYJU8NbJxXKHekG3f8KF_SwBrQ2tsdxdtNviZ4F_NFK7huDN3iJ55U8RDcUGgch4dGghwWvoLcZOmwtovzJ3bijAGPlSLMU9EQMCqEVh-oWGAO56s" },
     ];
 
+    const SAUCES = ["Doce de Leite", "Nutella"];
+
     function Form() {
-      const [step, setStep]       = useState(0);
-      const [cart, setCart]       = useState({});
-      const [sauce, setSauce]     = useState("Doce de Leite");
-      const [name, setName]       = useState("");
-      const [phone, setPhone]     = useState("");
-      const [addr, setAddr]       = useState("");
-      const [notes, setNotes]     = useState("");
-      const [errs, setErrs]       = useState({});
+      const [step, setStep]   = useState(0);
+      const [cart, setCart]   = useState({});
+      const [sauces, setSauces] = useState({}); // { e4: "Doce de Leite", e6: "Nutella" }
+      const [name, setName]   = useState("");
+      const [phone, setPhone] = useState("");
+      const [addr, setAddr]   = useState("");
+      const [notes, setNotes] = useState("");
+      const [errs, setErrs]   = useState({});
 
       const items = PRODS.filter(p => (cart[p.id]||0) > 0);
       const total = items.reduce((s,p) => s + p.price*(cart[p.id]||0), 0);
       const count = Object.values(cart).reduce((a,b)=>a+b,0);
 
-      const setQty = (id, delta) => setCart(p => ({...p, [id]: Math.max(0,(p[id]||0)+delta)}));
+      const setQty = (id, delta) => {
+        setCart(prev => {
+          const next = Math.max(0, (prev[id]||0) + delta);
+          return {...prev, [id]: next};
+        });
+        // set default sauce when first added
+        const prod = PRODS.find(p => p.id === id);
+        if (prod && prod.group === "esp" && delta > 0) {
+          setSauces(prev => prev[id] ? prev : {...prev, [id]: "Doce de Leite"});
+        }
+      };
+
+      const setSauce = (id, s) => setSauces(prev => ({...prev, [id]: s}));
 
       const validate2 = () => {
         const e = {};
@@ -1454,33 +1468,36 @@
         return Object.keys(e).length === 0;
       };
 
-      const sendWA = async () => {
-        const hasEsp = items.some(p=>p.group==="esp");
+      const sendWA = () => {
+        // Build message synchronously — before any async call
         let msg = `*¡Hola Churros! — Nova Encomenda*\n\n`;
-        msg += `👤 *${name}*\n📱 ${phone}\n📍 ${addr}\n\n`;
+        msg += `*${name}*\nTel: ${phone}\nMorada: ${addr}\n\n`;
         msg += `*Pedido:*\n`;
         items.forEach(p => {
-          msg += `• ${p.name} (${p.desc.split('·')[0].trim()}) ×${cart[p.id]} — ${(p.price*cart[p.id]).toLocaleString()} MT\n`;
+          const s = p.group === "esp" ? ` (${sauces[p.id] || "Doce de Leite"})` : "";
+          msg += `• ${p.name} ${p.desc}${s} ×${cart[p.id]} — ${(p.price*cart[p.id]).toLocaleString()} MT\n`;
         });
-        if (hasEsp) msg += `\n🍯 Molho: ${sauce}`;
-        msg += `\n\n*Total: ${total.toLocaleString()} MT*`;
-        if (notes.trim()) msg += `\n\n📝 ${notes}`;
+        msg += `\n*Total: ${total.toLocaleString()} MT*`;
+        if (notes.trim()) msg += `\n\nObs: ${notes}`;
 
-        // Save to database (fire-and-forget)
-        try {
-          await fetch('/api/orders', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              customer_name: name, phone, address: addr,
-              items: items.map(p=>({id:p.id,name:p.name,desc:p.desc,price:p.price,qty:cart[p.id]})),
-              sauce: hasEsp ? sauce : null,
-              total, notes
-            })
-          });
-        } catch(e) { console.warn('Falha ao guardar pedido:', e); }
+        // Open WhatsApp immediately (must be synchronous — before any await)
+        window.location.href = `https://wa.me/258852690365?text=${encodeURIComponent(msg)}`;
 
-        window.open(`https://wa.me/258852690365?text=${encodeURIComponent(msg)}`,"_blank");
+        // Save to DB in background (fire-and-forget)
+        fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer_name: name, phone, address: addr,
+            items: items.map(p=>({
+              id: p.id, name: p.name, desc: p.desc, price: p.price,
+              qty: cart[p.id],
+              sauce: p.group === "esp" ? (sauces[p.id] || "Doce de Leite") : null
+            })),
+            sauce: items.filter(p=>p.group==="esp").map(p=>sauces[p.id]||"Doce de Leite").join(", ") || null,
+            total, notes
+          })
+        }).catch(e => console.warn('DB save failed:', e));
       };
 
       const tabs = ["Produtos","Entrega","Confirmar"];
@@ -1496,48 +1513,67 @@
           </div>
           <div className="form-body">
 
-            {/* STEP 0 */}
+            {/* STEP 0 — Produtos */}
             <div className={`form-step-content ${step===0?"active":""}`}>
               <div className="product-grid">
                 {PRODS.map(p => {
                   const q = cart[p.id]||0;
+                  const sc = sauces[p.id] || "Doce de Leite";
                   return (
-                    <div key={p.id} className={`prod-row ${q>0?"on":""}`} onClick={()=>q===0&&setQty(p.id,1)}>
-                      <div className="prod-row-img">
-                        <img src={p.img} alt={p.name} />
+                    <div key={p.id} className={`prod-row ${q>0?"on":""}`}
+                      style={{flexDirection:"column", display:"flex", padding:0}}
+                      onClick={()=>q===0&&setQty(p.id,1)}>
+
+                      {/* Main row */}
+                      <div style={{display:"grid", gridTemplateColumns:"72px 1fr auto", alignItems:"center", width:"100%"}}>
+                        <div className="prod-row-img" style={{width:72,height:72}}>
+                          <img src={p.img} alt={p.name} />
+                        </div>
+                        <div className="prod-row-info">
+                          <div className="prod-name">{p.name}</div>
+                          <div className="prod-desc">{p.desc}</div>
+                        </div>
+                        <div style={{display:"flex", alignItems:"center", gap:8, paddingRight:12}}>
+                          <span className="prod-price" style={{fontSize:18}}>{p.price} MT</span>
+                          {q > 0
+                            ? <div className="prod-qty-ctrl" style={{gap:6}} onClick={e=>e.stopPropagation()}>
+                                <button className="qty-btn" onClick={()=>setQty(p.id,-1)}>−</button>
+                                <span className="qty-num">{q}</span>
+                                <button className="qty-btn" onClick={()=>setQty(p.id,+1)}>+</button>
+                              </div>
+                            : <div className="prod-qty-ctrl" onClick={e=>e.stopPropagation()}>
+                                <button className="qty-btn" style={{fontSize:15}} onClick={()=>setQty(p.id,1)}>+</button>
+                              </div>
+                          }
+                        </div>
                       </div>
-                      <div className="prod-row-info">
-                        <div className="prod-name">{p.name}</div>
-                        <div className="prod-desc">{p.desc}</div>
-                      </div>
-                      <div className="prod-price">{p.price} MT</div>
-                      {q > 0
-                        ? <div className="prod-qty-ctrl" onClick={e=>e.stopPropagation()}>
-                            <button className="qty-btn" onClick={()=>setQty(p.id,-1)}>−</button>
-                            <span className="qty-num">{q}</span>
-                            <button className="qty-btn" onClick={()=>setQty(p.id,+1)}>+</button>
-                          </div>
-                        : <div className="prod-qty-ctrl">
-                            <button className="qty-btn" style={{fontSize:15}} onClick={e=>{e.stopPropagation();setQty(p.id,1)}}>+</button>
-                          </div>
-                      }
+
+                      {/* Sauce selector — only for Espanhóis when in cart */}
+                      {q > 0 && p.group === "esp" && (
+                        <div style={{
+                          display:"flex", gap:6, padding:"8px 12px 12px",
+                          borderTop:"1px solid rgba(61,30,8,0.08)"
+                        }} onClick={e=>e.stopPropagation()}>
+                          <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:"var(--muted)",marginRight:4,alignSelf:"center"}}>Molho:</span>
+                          {SAUCES.map(s => (
+                            <button key={s} onClick={()=>setSauce(p.id, s)}
+                              style={{
+                                flex:1, padding:"7px 4px",
+                                border: sc===s ? "1.5px solid var(--brown)" : "1px solid rgba(61,30,8,0.15)",
+                                background: sc===s ? "var(--warm)" : "transparent",
+                                color: sc===s ? "var(--brown)" : "var(--muted)",
+                                fontSize:12, fontWeight:600, cursor:"pointer",
+                                transition:"all 0.15s"
+                              }}>
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
               </div>
-
-              {items.some(p=>p.group==="esp") && (
-                <div className="f-group" style={{marginTop:24}}>
-                  <label className="f-label">Molho para os Espanhóis</label>
-                  <div className="sauce-selector">
-                    {["Doce de Leite","Nutella"].map(s=>(
-                      <div key={s} className={`sauce-opt ${sauce===s?"on":""}`} onClick={()=>setSauce(s)}>
-                        {s}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {total > 0 && (
                 <div className="cart-bar">
@@ -1553,7 +1589,7 @@
               </div>
             </div>
 
-            {/* STEP 1 */}
+            {/* STEP 1 — Entrega */}
             <div className={`form-step-content ${step===1?"active":""}`}>
               <div className="f-row">
                 <div className="f-group">
@@ -1582,19 +1618,19 @@
               </div>
             </div>
 
-            {/* STEP 2 */}
+            {/* STEP 2 — Confirmar */}
             <div className={`form-step-content ${step===2?"active":""}`}>
               <div className="summary-block">
                 <div className="summary-head">Pedido</div>
                 {items.map(p=>(
                   <div key={p.id} className="sum-row">
-                    <span>{p.name} ({p.desc.split('·')[0].trim()}) ×{cart[p.id]}</span>
+                    <span>
+                      {p.name} {p.desc} ×{cart[p.id]}
+                      {p.group==="esp" && <span style={{color:"var(--muted)",fontSize:12}}> — {sauces[p.id]||"Doce de Leite"}</span>}
+                    </span>
                     <span>{(p.price*cart[p.id]).toLocaleString()} MT</span>
                   </div>
                 ))}
-                {items.some(p=>p.group==="esp") && (
-                  <div className="sum-row"><span>Molho</span><span>{sauce}</span></div>
-                )}
                 <div className="sum-total">
                   <span className="sum-total-label">Total</span>
                   <span className="sum-total-val">{total.toLocaleString()} MT</span>
@@ -1612,7 +1648,7 @@
                 border:"1px solid rgba(37,211,102,0.2)",
                 fontSize:13, color:"#2a7a4a", fontWeight:600, marginBottom:4
               }}>
-                Será redirecionado para o WhatsApp com o pedido já formatado.
+                Será aberto o WhatsApp com o pedido já formatado.
               </div>
               <div className="form-actions">
                 <button className="btn-back" onClick={()=>setStep(1)}>← Voltar</button>
