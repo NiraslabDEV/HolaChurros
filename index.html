@@ -743,6 +743,10 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 900px) {
+      /* Prevent ANY element from overflowing the viewport */
+      *, *::before, *::after { max-width: 100%; }
+      body { overflow-x: hidden; }
+
       .section-wrap { padding: 0 20px; }
       nav { padding: 0 20px; }
       .nav-links { display: none; }
@@ -815,6 +819,58 @@
       /* Section headers centrados no mobile */
       .section-header { flex-direction: column; gap: 12px; align-items: flex-start; }
       .section-note { text-align: left; max-width: 100%; }
+
+      /* ── Formulário de encomenda no mobile ── */
+      #order { padding: 60px 0; }
+      #orderFormMount { width: 100%; min-width: 0; }
+      .order-form-wrap { width: 100%; box-sizing: border-box; }
+      .form-body { padding: 20px 16px; }
+      .form-tabs .form-tab { font-size: 10px; padding: 16px 8px; }
+
+      /* Linha de produto — empilha imagem+info em cima, preço+qty em baixo */
+      .prod-row {
+        grid-template-columns: 64px 1fr;
+        grid-template-rows: auto auto;
+        gap: 0;
+      }
+      .prod-row-img { width: 64px; height: 64px; grid-row: span 2; }
+      .prod-row-info { padding: 10px 8px 4px; }
+      .prod-price {
+        font-size: 18px;
+        padding: 0 8px 10px;
+        grid-column: 2;
+        display: flex; align-items: center;
+      }
+      .prod-qty-ctrl {
+        grid-column: 2;
+        padding: 4px 8px 10px;
+        gap: 8px;
+      }
+      /* Quando tem qty > 0: preço e controlos na mesma linha */
+      .prod-row.on { grid-template-columns: 64px 1fr auto; grid-template-rows: auto; }
+      .prod-row.on .prod-row-img { grid-row: 1; height: 72px; width: 64px; }
+      .prod-row.on .prod-row-info { grid-column: 2; padding: 14px 8px; }
+      .prod-row.on .prod-price { grid-column: unset; padding: 0 4px 0 0; font-size: 16px; }
+      .prod-row.on .prod-qty-ctrl { grid-column: unset; padding-right: 10px; }
+
+      .qty-btn { width: 28px; height: 28px; font-size: 16px; }
+      .qty-num { font-size: 18px; }
+
+      .cart-bar { padding: 16px; }
+      .cart-total { font-size: 24px; }
+      .form-actions { gap: 8px; }
+      .btn-next, .btn-wa { padding: 14px 12px; font-size: 12px; }
+      .btn-back { padding: 14px 12px; font-size: 11px; }
+
+      .summary-block { padding: 20px 16px; }
+      .sum-total-val { font-size: 30px; }
+
+      /* Sauce selector */
+      .sauce-selector { grid-template-columns: 1fr; }
+
+      /* Eventos form */
+      #eventos { padding: 60px 0; }
+      .eventos-layout { grid-template-columns: 1fr !important; gap: 40px; }
     }
   </style>
 </head>
