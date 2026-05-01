@@ -1459,7 +1459,7 @@
         setCart(prev => [...prev, {
           uid: Date.now() + Math.random(),
           id,
-          sauce: prod.group === "esp" ? "Doce de Leite" : null
+          sauce: "Doce de Leite"
         }]);
       };
 
@@ -1568,7 +1568,7 @@
                       </div>
 
                       {/* Per-unit sauce selectors for Espanhóis */}
-                      {q > 0 && p.group === "esp" && (
+                      {q > 0 && (
                         <div style={{borderTop:"1px solid rgba(61,30,8,0.08)", padding:"8px 12px 10px"}}
                           onClick={e=>e.stopPropagation()}>
                           {group.map((item, idx) => (
