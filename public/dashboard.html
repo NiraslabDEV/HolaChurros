@@ -229,6 +229,18 @@
     </div>
   </div>
 
+  <!-- Order detail modal -->
+  <div id="orderModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/70 backdrop-blur-sm px-4"
+    onclick="if(event.target===this) closeModal()">
+    <div class="bg-cream w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="bg-brown text-cream px-6 py-4 flex items-center justify-between sticky top-0">
+        <div class="font-serif text-gold text-lg italic font-bold" id="modalTitle">Detalhe do Pedido</div>
+        <button onclick="closeModal()" class="text-cream/50 hover:text-gold text-2xl leading-none transition-colors">×</button>
+      </div>
+      <div id="modalContent" class="p-6"></div>
+    </div>
+  </div>
+
   <!-- Toast notification -->
   <div id="toast"
     class="fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-brown text-gold text-sm font-bold px-6 py-3 shadow-xl z-50 transition-all duration-300 pointer-events-none flex items-center gap-3">
@@ -238,6 +250,70 @@
   <script>
     let currentTab = 'orders';
     let lastPendingCount = null;
+    let ordersData = [];
+
+    // ── ORDER DETAIL MODAL ────────────────────────────────────────────────────
+    function openOrderDetail(id) {
+      const o = ordersData.find(x => x.id === id);
+      if (!o) return;
+      const items  = Array.isArray(o.items)  ? o.items  : [];
+      const extras = Array.isArray(o.extras) ? o.extras : [];
+      const date   = new Date(o.created_at).toLocaleString('pt-MZ', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      const statusMap = { pendente:'badge-pendente', confirmado:'badge-confirmado', entregue:'badge-entregue', cancelado:'badge-cancelado' };
+
+      document.getElementById('modalTitle').textContent = `Pedido #${o.id}`;
+      document.getElementById('modalContent').innerHTML = `
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <div class="font-semibold text-ink text-base">${o.customer_name}</div>
+            <div class="text-xs text-muted mt-0.5">${date}</div>
+          </div>
+          <span class="inline-block px-3 py-1 text-xs font-bold rounded ${statusMap[o.status]||'badge-pendente'} capitalize">${o.status}</span>
+        </div>
+
+        <div class="border-t border-brown/10 pt-4 mb-4 space-y-2 text-sm">
+          <div class="flex gap-3"><span class="text-muted w-20 flex-shrink-0 text-xs uppercase font-bold tracking-wide pt-0.5">Telefone</span><span class="text-ink">${o.phone}</span></div>
+          <div class="flex gap-3"><span class="text-muted w-20 flex-shrink-0 text-xs uppercase font-bold tracking-wide pt-0.5">Morada</span><span class="text-ink">${o.address || '—'}</span></div>
+          ${o.notes ? `<div class="flex gap-3"><span class="text-muted w-20 flex-shrink-0 text-xs uppercase font-bold tracking-wide pt-0.5">Notas</span><span class="text-ink">${o.notes}</span></div>` : ''}
+        </div>
+
+        <div class="bg-warm/60 p-4 mb-4">
+          <div class="text-xs font-bold uppercase tracking-widest text-muted mb-3">Produtos</div>
+          ${items.map(i => `
+            <div class="flex justify-between items-start py-1.5 border-b border-brown/5 last:border-0">
+              <div>
+                <div class="text-sm font-medium text-ink">${i.name || '—'}</div>
+                ${i.sauce ? `<div class="text-xs text-muted">Molho: ${i.sauce}</div>` : ''}
+              </div>
+              <div class="text-sm font-semibold text-brown whitespace-nowrap ml-4">${Number(i.price||0).toLocaleString()} MT</div>
+            </div>`).join('')}
+        </div>
+
+        ${extras.length ? `
+        <div class="bg-warm/60 p-4 mb-4">
+          <div class="text-xs font-bold uppercase tracking-widest text-muted mb-3">Extras & Coberturas</div>
+          ${extras.map(e => `
+            <div class="flex justify-between py-1 text-sm">
+              <span class="text-ink">${e.label}</span>
+              <span class="text-brown font-semibold">+${Number(e.price||100).toLocaleString()} MT</span>
+            </div>`).join('')}
+        </div>` : ''}
+
+        <div class="flex justify-between items-center pt-2 border-t border-brown/20 mt-2">
+          <span class="text-sm font-bold uppercase tracking-wide text-muted">Total</span>
+          <span class="font-serif text-2xl font-bold text-brown">${Number(o.total).toLocaleString()} MT</span>
+        </div>
+      `;
+      const modal = document.getElementById('orderModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('orderModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
 
     // ── AUTH ──────────────────────────────────────────────────────────────────
     function getToken() { return sessionStorage.getItem('hc_token'); }
@@ -365,6 +441,7 @@
     async function loadOrders() {
       try {
         const orders = await fetch('/api/orders', { headers: authHeaders() }).then(r=>r.json());
+        ordersData = orders;
         document.getElementById('ordersCount').textContent = orders.length;
 
         if (!orders.length) {
@@ -398,7 +475,10 @@
             <td class="px-4 py-3 min-w-[140px]">
               <div class="flex flex-col gap-1.5">
                 ${statusSelect(o.id, o.status, 'orders')}
-                ${waLink(o.phone, wamsg)}
+                <div class="flex items-center gap-3">
+                  ${waLink(o.phone, wamsg)}
+                  <button onclick="openOrderDetail(${o.id})" class="text-xs font-semibold text-muted hover:text-brown transition-colors">Ver</button>
+                </div>
               </div>
             </td>
           </tr>`;
@@ -442,6 +522,7 @@
             <div class="card-actions">
               <div class="flex-1">${statusSelect(o.id, o.status, 'orders')}</div>
               ${waLink(o.phone, wamsg)}
+              <button onclick="openOrderDetail(${o.id})" class="text-xs font-semibold text-muted hover:text-brown transition-colors">Ver</button>
             </div>
           </div>`;
         }).join('');

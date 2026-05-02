@@ -4,6 +4,17 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>¡Hola Churros! — Churreirira Artesanal · Maputo</title>
+
+  <!-- Open Graph / WhatsApp preview -->
+  <meta property="og:type"        content="website"/>
+  <meta property="og:title"       content="¡Hola Churros! — Churros Artesanais em Maputo"/>
+  <meta property="og:description" content="Feitos à mão, fritos na hora e entregues em Maputo. Encomenda agora com delivery das 14h às 18h."/>
+  <meta property="og:image"       content="https://holachurrosmz.up.railway.app/uploads/logo.webp"/>
+  <meta property="og:url"         content="https://holachurrosmz.up.railway.app"/>
+  <meta property="og:locale"      content="pt_MZ"/>
+  <meta name="twitter:card"       content="summary_large_image"/>
+  <meta name="description"        content="Feitos à mão, fritos na hora e entregues em Maputo. Encomenda agora com delivery das 14h às 18h."/>
+
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"/>
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"/>
   <link rel="preload" as="image" href="uploads/logo.webp" type="image/webp"/>
@@ -169,6 +180,18 @@
       content: ''; display: block;
       width: 32px; height: 1px; background: var(--amber);
     }
+
+    .hero-status {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-bottom: 22px;
+      font-size: 12px; font-weight: 500; color: var(--muted);
+    }
+    .hero-status-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
+    }
+    .hero-status-dot.amber { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.22); }
+    .hero-status-dot.red   { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.22); }
 
     .hero-h1 {
       font-family: 'Playfair Display', serif;
@@ -903,6 +926,10 @@
         <img src="uploads/logo-opt.png" alt="¡Hola Churros!" id="heroLogoImg" style="width: clamp(180px, 18vw, 280px); height: auto; object-fit: contain; display: block; margin-bottom: 32px; filter: drop-shadow(0 4px 16px rgba(0,0,0,0.12));" fetchpriority="high"/>
       </picture>
       <div class="hero-label">Artesanal · Maputo · Desde 2020</div>
+      <div class="hero-status">
+        <span class="hero-status-dot" id="statusDot"></span>
+        <span id="statusText">A verificar horário…</span>
+      </div>
       <h1 class="hero-h1">
         Churros<br/>
         <em>que chegam</em><br/>
@@ -1569,6 +1596,10 @@
             var p = PRODS.find(function(p){ return p.id === i.id; });
             return { id:i.id, name:p.name, desc:p.desc, price:p.price, qty:1, sauce:i.sauce };
           }),
+          extras: state.extras.map(function(id){
+            var e = EXTRAS.find(function(e){ return e.id === id; });
+            return { id:id, label:e.label, price:e.price };
+          }),
           sauce: state.cartItems.filter(function(i){ return i.sauce; }).map(function(i){ return i.sauce; }).join(', ') || null,
           total: total, notes: state.notes
         })
@@ -1904,6 +1935,43 @@
       window.addEventListener("scroll", update, { passive: true });
       window.addEventListener("resize", update);
       update();
+    })();
+  </script>
+
+  <!-- Estado da loja -->
+  <script>
+    (function() {
+      function updateShopStatus() {
+        var now  = new Date();
+        var day  = now.getDay();
+        var mins = now.getHours() * 60 + now.getMinutes();
+        var weekday  = day >= 1 && day <= 5;
+        var lojaOpen = weekday && mins >= 9*60+30 && mins < 18*60+30;
+        var delivery = weekday && mins >= 14*60   && mins < 18*60;
+
+        var dot = document.getElementById('statusDot');
+        var txt = document.getElementById('statusText');
+        if (!dot || !txt) return;
+
+        dot.className = 'hero-status-dot';
+        if (lojaOpen && delivery) {
+          txt.textContent = 'Aberta agora · Delivery disponível';
+        } else if (lojaOpen) {
+          dot.classList.add('amber');
+          txt.textContent = mins < 14*60 ? 'Aberta agora · Delivery começa às 14h' : 'Aberta agora · Delivery encerrado';
+        } else {
+          dot.classList.add('red');
+          if (!weekday) {
+            txt.textContent = 'Fechada · Reabre segunda-feira às 9h30';
+          } else if (mins < 9*60+30) {
+            txt.textContent = 'Fechada · Abre hoje às 9h30';
+          } else {
+            txt.textContent = 'Fechada · Reabre amanhã às 9h30';
+          }
+        }
+      }
+      updateShopStatus();
+      setInterval(updateShopStatus, 60000);
     })();
   </script>
 

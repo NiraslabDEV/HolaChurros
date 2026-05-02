@@ -35,9 +35,11 @@ async function initDB() {
         sauce VARCHAR(100),
         total INTEGER NOT NULL,
         notes TEXT,
+        extras JSONB DEFAULT '[]',
         status VARCHAR(50) DEFAULT 'pendente',
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS extras JSONB DEFAULT '[]';
 
       CREATE TABLE IF NOT EXISTS events (
         id SERIAL PRIMARY KEY,
@@ -95,11 +97,11 @@ function authRequired(req, res, next) {
 app.post('/api/orders', async (req, res) => {
   if (!dbCheck(res)) return;
   try {
-    const { customer_name, phone, address, items, sauce, total, notes } = req.body;
+    const { customer_name, phone, address, items, sauce, total, notes, extras } = req.body;
     const result = await pool.query(
-      `INSERT INTO orders (customer_name, phone, address, items, sauce, total, notes)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [customer_name, phone, address, JSON.stringify(items), sauce, total, notes]
+      `INSERT INTO orders (customer_name, phone, address, items, sauce, total, notes, extras)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [customer_name, phone, address, JSON.stringify(items), sauce, total, notes, JSON.stringify(extras || [])]
     );
     res.json({ success: true, order: result.rows[0] });
   } catch (err) {
