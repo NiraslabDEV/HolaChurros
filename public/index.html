@@ -9,11 +9,47 @@
   <meta property="og:type"        content="website"/>
   <meta property="og:title"       content="¡Hola Churros! — Churros Artesanais em Maputo"/>
   <meta property="og:description" content="Feitos à mão, fritos na hora e entregues em Maputo. Encomenda agora com delivery das 14h às 18h."/>
-  <meta property="og:image"       content="https://holachurrosmz.up.railway.app/uploads/churros-artesanais-maputo-hola-churros-avenida-amilcar-cabral.png"/>
+  <meta property="og:image"       content="https://holachurrosmz.up.railway.app/uploads/churros-artesanais-maputo-hola-churros-avenida-amilcar-cabral.webp"/>
   <meta property="og:url"         content="https://holachurrosmz.up.railway.app"/>
   <meta property="og:locale"      content="pt_MZ"/>
   <meta name="twitter:card"       content="summary_large_image"/>
   <meta name="description"        content="Feitos à mão, fritos na hora e entregues em Maputo. Encomenda agora com delivery das 14h às 18h."/>
+
+  <!-- Schema markup — Google LocalBusiness -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FoodEstablishment",
+    "name": "¡Hola Churros!",
+    "description": "Churreria artesanal em Maputo. Churros feitos à mão, fritos na hora e entregues ao domicílio.",
+    "url": "https://holachurrosmz.up.railway.app",
+    "telephone": "+258852690365",
+    "image": "https://holachurrosmz.up.railway.app/uploads/churros-artesanais-maputo-hola-churros-avenida-amilcar-cabral.webp",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Av. Amílcar Cabral, 856",
+      "addressLocality": "Maputo",
+      "addressCountry": "MZ"
+    },
+    "geo": { "@type": "GeoCoordinates", "latitude": -25.9667, "longitude": 32.5833 },
+    "openingHoursSpecification": [{
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
+      "opens": "09:30", "closes": "18:30"
+    }],
+    "servesCuisine": ["Churros","Pastry","Dessert"],
+    "priceRange": "250–900 MT",
+    "sameAs": ["https://www.instagram.com/holachurrosmz"],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Menu ¡Hola Churros!",
+      "itemListElement": [
+        { "@type": "Offer", "itemOffered": { "@type": "MenuItem", "name": "Churros Espanhóis 4un" }, "price": "250", "priceCurrency": "MZN" },
+        { "@type": "Offer", "itemOffered": { "@type": "MenuItem", "name": "Churros Recheados 4un" }, "price": "600", "priceCurrency": "MZN" }
+      ]
+    }
+  }
+  </script>
 
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"/>
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"/>
@@ -892,9 +928,60 @@
       #eventos { padding: 60px 0; }
       .eventos-layout { grid-template-columns: 1fr !important; gap: 40px; }
     }
+
+    /* ── Announcement bar ── */
+    #announceBanner {
+      background: var(--brown); color: var(--cream);
+      text-align: center; padding: 9px 40px 9px 16px;
+      font-size: 12px; font-weight: 500; letter-spacing: 0.04em;
+      position: relative; z-index: 200;
+    }
+    #announceBanner a {
+      color: var(--gold); font-weight: 700; text-decoration: none; margin-left: 10px;
+    }
+    #announceBanner a:hover { text-decoration: underline; }
+    #closeBanner {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      cursor: pointer; opacity: 0.45; font-size: 15px; line-height: 1;
+      transition: opacity 0.2s;
+    }
+    #closeBanner:hover { opacity: 1; }
+
+    /* ── Hero countdown ── */
+    .hero-countdown {
+      display: inline-flex; align-items: center; gap: 10px;
+      margin: 18px 0 22px; padding: 10px 20px;
+      background: var(--warm); border: 1px solid rgba(200,150,12,0.22);
+      font-size: 13px; color: var(--muted); font-weight: 500;
+    }
+    .hero-countdown strong { font-weight: 700; color: var(--brown); }
+    .cd-pulse {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--amber); flex-shrink: 0;
+      animation: cdBlink 1.2s ease-in-out infinite;
+    }
+    @keyframes cdBlink { 0%,100% { opacity:1; } 50% { opacity:0.15; } }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0; transform: translateY(26px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-d1 { transition-delay: 0.1s; }
+    .reveal-d2 { transition-delay: 0.2s; }
+    .reveal-d3 { transition-delay: 0.3s; }
+    .reveal-d4 { transition-delay: 0.4s; }
   </style>
 </head>
 <body>
+
+  <!-- Announcement bar -->
+  <div id="announceBanner">
+    🛵 Delivery em Maputo das 14h às 18h &nbsp;·&nbsp; Av. Amílcar Cabral, 856
+    <a href="#order">Encomendar agora →</a>
+    <span id="closeBanner">✕</span>
+  </div>
 
   <!-- Custom cursor -->
   <div class="cursor-dot" id="cursorDot"></div>
@@ -942,17 +1029,21 @@
         <a href="#order" class="btn-fill">Fazer Encomenda</a>
         <a href="#menu" class="btn-ghost">Ver Menu</a>
       </div>
+      <div class="hero-countdown">
+        <span class="cd-pulse"></span>
+        <span id="countdown">A calcular horário…</span>
+      </div>
       <div class="hero-stats">
         <div>
-          <div class="stat-num">2020</div>
+          <div class="stat-num" data-count="2020">2020</div>
           <div class="stat-label">A servir Maputo</div>
         </div>
         <div>
-          <div class="stat-num">841</div>
+          <div class="stat-num" data-count="841">841</div>
           <div class="stat-label">Fãs no Instagram</div>
         </div>
         <div>
-          <div class="stat-num">100%</div>
+          <div class="stat-num" data-count="100">100%</div>
           <div class="stat-label">Artesanal</div>
         </div>
       </div>
@@ -960,7 +1051,7 @@
     </div>
     <div class="hero-right">
       <img
-        src="uploads/churros-artesanais-maputo-hola-churros-avenida-amilcar-cabral.png"
+        src="uploads/churros-artesanais-maputo-hola-churros-avenida-amilcar-cabral.webp"
         alt="Churros artesanais quentes com doce de leite — ¡Hola Churros! Av. Amílcar Cabral Maputo"
       />
       <div class="hero-right-badge">
@@ -1011,9 +1102,9 @@
 
       <div class="menu-espanhois r">
         <!-- Photo column -->
-        <div class="menu-photo-cell">
+        <div class="menu-photo-cell reveal">
           <img
-            src="uploads/churros-espanhois-artesanais-churreria-maputo.png"
+            src="uploads/churros-espanhois-artesanais-churreria-maputo.webp"
             alt="Churros Espanhóis artesanais com Nutella e canela — Churreria ¡Hola Churros! Maputo"
           />
         </div>
@@ -1067,7 +1158,7 @@
       </div>
 
       <div class="menu-recheados r">
-        <div class="rechado-card">
+        <div class="rechado-card reveal">
           <div class="rechado-info">
             <div class="qty-label">Porção</div>
             <div class="item-title" style="font-family:'Playfair Display',serif; font-size:32px; font-weight:900; color:var(--brown); margin-bottom: 12px;">4 unidades</div>
@@ -1075,10 +1166,10 @@
             <div class="price-tag">600 <span>MT</span></div>
           </div>
           <div class="rechado-img">
-            <img src="uploads/churros-recheados-nutella-artesanais-maputo.png" alt="Churros Recheados com Nutella a escorrer — ¡Hola Churros! Maputo" />
+            <img src="uploads/churros-recheados-nutella-artesanais-maputo.webp" alt="Churros Recheados com Nutella a escorrer — ¡Hola Churros! Maputo" />
           </div>
         </div>
-        <div class="rechado-card">
+        <div class="rechado-card reveal">
           <div class="rechado-info">
             <div class="qty-label">Porção partilha</div>
             <div class="item-title" style="font-family:'Playfair Display',serif; font-size:32px; font-weight:900; color:var(--brown); margin-bottom: 12px;">6 unidades</div>
@@ -1086,7 +1177,7 @@
             <div class="price-tag">900 <span>MT</span></div>
           </div>
           <div class="rechado-img">
-            <img src="uploads/churros-recheados-6-unidades-doce-de-leite-maputo.png" alt="Churros Recheados 6 unidades com doce de leite — ¡Hola Churros! Delivery Maputo" />
+            <img src="uploads/churros-recheados-6-unidades-doce-de-leite-maputo.webp" alt="Churros Recheados 6 unidades com doce de leite — ¡Hola Churros! Delivery Maputo" />
           </div>
         </div>
       </div>
@@ -1097,23 +1188,23 @@
       </div>
 
       <div class="gourmet-grid r">
-        <div class="gourmet-tile">
-          <img src="uploads/churros-gourmet-pistachios-marshmallow-maputo.png" alt="Churros Gourmet com pistachios marshmallow e avelãs — ¡Hola Churros! Maputo" loading="lazy"/>
+        <div class="gourmet-tile reveal">
+          <img src="uploads/churros-gourmet-pistachios-marshmallow-maputo.webp" alt="Churros Gourmet com pistachios marshmallow e avelãs — ¡Hola Churros! Maputo" loading="lazy"/>
           <div class="gourmet-tile-label">
             <div class="gourmet-tile-name">Churros Gourmet</div>
             <div class="gourmet-tile-note">Criações especiais da nossa cozinha</div>
             <div class="gourmet-tile-only">Só na loja</div>
           </div>
         </div>
-        <div class="gourmet-tile">
-          <img src="uploads/ice-churros-sorvete-artesanal-maputo-hola-churros.png" alt="Ice Churros com gelado artesanal — ¡Hola Churros! Av. Amílcar Cabral Maputo" loading="lazy"/>
+        <div class="gourmet-tile reveal reveal-d1">
+          <img src="uploads/ice-churros-sorvete-artesanal-maputo-hola-churros.webp" alt="Ice Churros com gelado artesanal — ¡Hola Churros! Av. Amílcar Cabral Maputo" loading="lazy"/>
           <div class="gourmet-tile-label">
             <div class="gourmet-tile-name">Ice Churros</div>
             <div class="gourmet-tile-note">Com gelado artesanal</div>
           </div>
         </div>
-        <div class="gourmet-tile">
-          <img src="uploads/coffee-churros-cafe-artesanal-maputo-hola-churros.png" alt="Coffee Churros com café artesanal — ¡Hola Churros! Churreria Maputo" loading="lazy"/>
+        <div class="gourmet-tile reveal reveal-d2">
+          <img src="uploads/coffee-churros-cafe-artesanal-maputo-hola-churros.webp" alt="Coffee Churros com café artesanal — ¡Hola Churros! Churreria Maputo" loading="lazy"/>
           <div class="gourmet-tile-label">
             <div class="gourmet-tile-name">Coffee Churros</div>
             <div class="gourmet-tile-note">O par perfeito</div>
@@ -1126,7 +1217,7 @@
 
   <!-- DELIVERY BANNER -->
   <section id="delivery">
-    <div class="delivery-left">
+    <div class="delivery-left reveal">
       <div class="delivery-label">Delivery · Maputo</div>
       <h2 class="delivery-h2">Entregamos em<br/>sua porta.</h2>
       <p class="delivery-body">
@@ -1134,7 +1225,7 @@
       </p>
       <a href="#order" class="btn-fill" style="display:inline-block">Encomendar Agora</a>
     </div>
-    <div class="delivery-right">
+    <div class="delivery-right reveal reveal-d2">
       <div class="info-cell">
         <div class="info-cell-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--amber)"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1441,15 +1532,15 @@
   (function() {
     var PRODS = [
       { id:"e4",  name:"Churros Espanhóis",  desc:"4 unidades",  price:250,
-        img:"uploads/churros-espanhois-cone-encomenda-maputo.png" },
+        img:"uploads/churros-espanhois-cone-encomenda-maputo.webp" },
       { id:"e6",  name:"Churros Espanhóis",  desc:"6 unidades",  price:320,
-        img:"uploads/churros-espanhois-cone-encomenda-maputo.png" },
+        img:"uploads/churros-espanhois-cone-encomenda-maputo.webp" },
       { id:"e12", name:"Churros Espanhóis",  desc:"12 unidades", price:580,
-        img:"uploads/churros-espanhois-12-unidades-caixa-maputo.png" },
+        img:"uploads/churros-espanhois-12-unidades-caixa-maputo.webp" },
       { id:"r4",  name:"Churros Recheados",  desc:"4 unidades",  price:600,
-        img:"uploads/churros-recheados-caixa-delivery-maputo.png" },
+        img:"uploads/churros-recheados-caixa-delivery-maputo.webp" },
       { id:"r6",  name:"Churros Recheados",  desc:"6 unidades",  price:900,
-        img:"uploads/churros-recheados-caixa-delivery-maputo.png" }
+        img:"uploads/churros-recheados-caixa-delivery-maputo.webp" }
     ];
     var SAUCES = ["Doce de Leite", "Nutella"];
     var ZONES = [
@@ -1935,6 +2026,85 @@
       window.addEventListener("scroll", update, { passive: true });
       window.addEventListener("resize", update);
       update();
+    })();
+  </script>
+
+  <!-- Announcement bar close -->
+  <script>
+    (function() {
+      if (sessionStorage.getItem('bannerClosed')) {
+        var b = document.getElementById('announceBanner');
+        if (b) b.style.display = 'none';
+      }
+      document.getElementById('closeBanner').addEventListener('click', function() {
+        document.getElementById('announceBanner').style.display = 'none';
+        sessionStorage.setItem('bannerClosed', '1');
+      });
+    })();
+  </script>
+
+  <!-- Countdown -->
+  <script>
+    (function() {
+      var el = document.getElementById('countdown');
+      if (!el) return;
+      function update() {
+        var now = new Date();
+        var day = now.getDay();
+        var mins = now.getHours() * 60 + now.getMinutes();
+        var weekday = day >= 1 && day <= 5;
+        var cutoff = 13 * 60 + 30;
+        var dot = document.querySelector('.cd-pulse');
+        if (!weekday) {
+          el.innerHTML = 'Próxima entrega: <strong>Segunda-feira às 14h</strong>';
+          if (dot) dot.style.background = '#ef4444'; return;
+        }
+        if (mins >= 18 * 60 + 30) {
+          el.innerHTML = 'Reabrimos <strong>amanhã às 9h30</strong>';
+          if (dot) dot.style.background = '#ef4444'; return;
+        }
+        if (mins >= cutoff) {
+          el.innerHTML = 'Encomendas encerradas · Delivery <strong>amanhã das 14h</strong>';
+          if (dot) dot.style.background = '#ef4444'; return;
+        }
+        var rem = cutoff - mins;
+        var rh = Math.floor(rem / 60); var rm = rem % 60;
+        var t = rh > 0 ? rh + 'h ' + (rm < 10 ? '0' : '') + rm + 'm' : rm + 'm';
+        el.innerHTML = 'Encomendar hoje até às 13h30 — restam <strong>' + t + '</strong>';
+      }
+      update(); setInterval(update, 30000);
+    })();
+  </script>
+
+  <!-- Animated counters + scroll reveal -->
+  <script>
+    (function() {
+      var counters = document.querySelectorAll('[data-count]');
+      var counterIO = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+          if (!e.isIntersecting) return;
+          var el = e.target;
+          var isPercent = String(el.dataset.count).includes('%');
+          var num = parseInt(el.dataset.count);
+          var start = performance.now(); var dur = 1600;
+          function step(now) {
+            var p = Math.min((now - start) / dur, 1);
+            var ease = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(ease * num).toLocaleString() + (isPercent ? '%' : '');
+            if (p < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
+          counterIO.unobserve(el);
+        });
+      }, { threshold: 0.6 });
+      counters.forEach(function(el) { counterIO.observe(el); });
+
+      var revealIO = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+          if (e.isIntersecting) { e.target.classList.add('visible'); revealIO.unobserve(e.target); }
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+      document.querySelectorAll('.reveal').forEach(function(el) { revealIO.observe(el); });
     })();
   </script>
 

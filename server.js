@@ -181,17 +181,21 @@ app.get('/api/stats', authRequired, async (req, res) => {
     return res.json({ total_orders: 0, total_events: 0, total_revenue: 0, pending_orders: 0 });
   }
   try {
-    const [orders, events, revenue, pending] = await Promise.all([
+    const [orders, events, revenue, pending, todayOrders, todayRevenue] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM orders'),
       pool.query('SELECT COUNT(*) FROM events'),
       pool.query("SELECT COALESCE(SUM(total),0) as total FROM orders WHERE status != 'cancelado'"),
-      pool.query("SELECT COUNT(*) FROM orders WHERE status='pendente'")
+      pool.query("SELECT COUNT(*) FROM orders WHERE status='pendente'"),
+      pool.query("SELECT COUNT(*) FROM orders WHERE created_at >= CURRENT_DATE"),
+      pool.query("SELECT COALESCE(SUM(total),0) as total FROM orders WHERE created_at >= CURRENT_DATE AND status != 'cancelado'")
     ]);
     res.json({
       total_orders:   parseInt(orders.rows[0].count),
       total_events:   parseInt(events.rows[0].count),
       total_revenue:  parseInt(revenue.rows[0].total),
-      pending_orders: parseInt(pending.rows[0].count)
+      pending_orders: parseInt(pending.rows[0].count),
+      today_orders:   parseInt(todayOrders.rows[0].count),
+      today_revenue:  parseInt(todayRevenue.rows[0].total)
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

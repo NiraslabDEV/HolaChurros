@@ -121,7 +121,7 @@
     <div class="max-w-7xl mx-auto px-4 md:px-6 py-6">
 
       <!-- STATS CARDS -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
         <div class="bg-white border border-brown/10 p-4 md:p-6">
           <div class="text-xs font-bold tracking-widest uppercase text-muted mb-1 md:mb-2">Total Pedidos</div>
           <div class="font-serif text-3xl md:text-4xl font-bold text-brown" id="statOrders">—</div>
@@ -131,12 +131,25 @@
           <div class="font-serif text-3xl md:text-4xl font-bold text-amber" id="statPending">—</div>
         </div>
         <div class="bg-white border border-brown/10 p-4 md:p-6">
-          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-1 md:mb-2">Receita</div>
+          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-1 md:mb-2">Receita Total</div>
           <div class="font-serif text-2xl md:text-4xl font-bold text-brown leading-tight" id="statRevenue">—</div>
         </div>
         <div class="bg-white border border-brown/10 p-4 md:p-6">
           <div class="text-xs font-bold tracking-widest uppercase text-muted mb-1 md:mb-2">Eventos</div>
           <div class="font-serif text-3xl md:text-4xl font-bold text-brown" id="statEvents">—</div>
+        </div>
+      </div>
+
+      <!-- HOJE BANNER -->
+      <div class="bg-amber/10 border border-amber/30 px-4 md:px-6 py-3 mb-6 flex flex-wrap items-center gap-x-6 gap-y-1">
+        <div class="text-xs font-bold tracking-widest uppercase text-amber">Hoje</div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs uppercase tracking-wide text-muted font-semibold">Pedidos</span>
+          <span class="font-serif text-xl font-bold text-brown" id="statTodayOrders">—</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs uppercase tracking-wide text-muted font-semibold">Receita</span>
+          <span class="font-serif text-xl font-bold text-brown" id="statTodayRevenue">—</span>
         </div>
       </div>
 
@@ -397,10 +410,12 @@
     async function loadStats() {
       try {
         const d = await fetch('/api/stats', { headers: authHeaders() }).then(r=>r.json());
-        document.getElementById('statOrders').textContent  = d.total_orders;
-        document.getElementById('statPending').textContent = d.pending_orders;
-        document.getElementById('statRevenue').textContent = Number(d.total_revenue).toLocaleString() + ' MT';
-        document.getElementById('statEvents').textContent  = d.total_events;
+        document.getElementById('statOrders').textContent       = d.total_orders;
+        document.getElementById('statPending').textContent      = d.pending_orders;
+        document.getElementById('statRevenue').textContent      = Number(d.total_revenue).toLocaleString() + ' MT';
+        document.getElementById('statEvents').textContent       = d.total_events;
+        document.getElementById('statTodayOrders').textContent  = d.today_orders ?? '—';
+        document.getElementById('statTodayRevenue').textContent = d.today_revenue != null ? Number(d.today_revenue).toLocaleString() + ' MT' : '—';
         lastPendingCount = d.pending_orders;
       } catch(e) { console.error(e); }
     }
