@@ -407,7 +407,7 @@
 
         // Desktop rows
         document.getElementById('eventsBodyDesktop').innerHTML = events.map(e => {
-          const date = new Date(e.event_date+'T12:00:00').toLocaleDateString('pt-MZ',{day:'2-digit',month:'2-digit',year:'numeric'});
+          const dp = String(e.event_date).substring(0,10).split('-'); const date = dp.length===3 ? dp[2]+'/'+dp[1]+'/'+dp[0] : e.event_date;
           const wamsg = `Olá ${e.contact_name}! Recebemos o pedido para o seu ${e.event_type} em ${date}. Vamos entrar em contacto brevemente para confirmar os detalhes. — Hola Churros`;
           return `<tr class="border-b border-brown/5 hover:bg-warm/30 transition-colors">
             <td class="px-4 py-3 text-muted font-mono text-xs">#${e.id}</td>
@@ -430,7 +430,7 @@
 
         // Mobile cards
         document.getElementById('eventsBodyMobile').innerHTML = events.map(e => {
-          const date = new Date(e.event_date+'T12:00:00').toLocaleDateString('pt-MZ',{day:'2-digit',month:'2-digit',year:'numeric'});
+          const dp = String(e.event_date).substring(0,10).split('-'); const date = dp.length===3 ? dp[2]+'/'+dp[1]+'/'+dp[0] : e.event_date;
           const wamsg = `Olá ${e.contact_name}! Recebemos o pedido para o seu ${e.event_type} em ${date}. Vamos entrar em contacto brevemente para confirmar os detalhes. — Hola Churros`;
           return `<div class="event-card">
             <div class="card-header">
