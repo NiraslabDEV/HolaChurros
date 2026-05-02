@@ -1625,7 +1625,7 @@
       if (z) state.zone  = z.value;
     }
     function pickZone() { syncInputs(); render(); }
-    function goStep(n)   { syncInputs(); state.step = n; render(); }
+    function goStep(n)   { syncInputs(); if (n === 1 && state.step === 0 && state.cartItems.length > 0) { if (window.track) window.track('step1_complete', { items: state.cartItems.length }); } state.step = n; render(); }
     function validate() {
       syncInputs();
       var e = {};
@@ -1634,10 +1634,11 @@
       if (!state.phone.trim() || state.phone.trim().length < 7)    e.phone = 'Número inválido';
       if (state.zone !== 'recolha' && !state.addr.trim())          e.addr  = 'Obrigatório';
       state.errs = e;
-      if (!Object.keys(e).length) state.step = 2;
+      if (!Object.keys(e).length) { if (window.track) window.track('step2_complete', { zone: state.zone }); state.step = 2; }
       render();
     }
     function sendWA() {
+      if (window.track) window.track('wa_sent');
       var fee  = getDeliveryFee();
       var sub  = getSubtotal();
       var total = state.zone === 'recolha' ? sub : (sub + fee);
@@ -2181,6 +2182,37 @@
       100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); }
     }
   </style>
+
+  <!-- Analytics — tracking global acessível de qualquer script -->
+  <script>
+    (function() {
+      var sid = localStorage.getItem('hc_sid');
+      if (!sid) {
+        sid = Math.random().toString(36).substr(2) + Date.now().toString(36);
+        localStorage.setItem('hc_sid', sid);
+      }
+
+      window.track = function(event, meta) {
+        var payload = JSON.stringify({ event: event, session_id: sid, metadata: meta || {} });
+        try {
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon('/api/analytics', new Blob([payload], { type: 'application/json' }));
+          } else {
+            fetch('/api/analytics', { method:'POST', headers:{'Content-Type':'application/json'}, body: payload, keepalive: true }).catch(function(){});
+          }
+        } catch(_) {}
+      };
+
+      window.track('page_visit');
+
+      document.querySelectorAll('a[href="#menu"]').forEach(function(a) {
+        a.addEventListener('click', function() { window.track('menu_click'); }, { once: true });
+      });
+      document.querySelectorAll('a[href="#order"]').forEach(function(a) {
+        a.addEventListener('click', function() { window.track('order_click'); }, { once: true });
+      });
+    })();
+  </script>
 
 </body>
 </html>

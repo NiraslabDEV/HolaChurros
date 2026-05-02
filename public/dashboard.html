@@ -163,6 +163,10 @@
           class="flex-1 md:flex-none px-4 md:px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 border-transparent text-muted hover:text-brown transition-colors">
           Eventos
         </button>
+        <button id="tabFunnel" onclick="showTab('funnel')"
+          class="flex-1 md:flex-none px-4 md:px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 border-transparent text-muted hover:text-brown transition-colors">
+          Funil
+        </button>
       </div>
 
       <!-- ORDERS PANEL -->
@@ -236,6 +240,38 @@
         <!-- Mobile cards -->
         <div class="md:hidden" id="eventsBodyMobile">
           <div class="text-center py-8 text-muted text-xs">A carregar...</div>
+        </div>
+      </div>
+
+      <!-- FUNNEL PANEL -->
+      <div id="panelFunnel" class="hidden">
+        <div class="flex items-center justify-between mb-4">
+          <div class="text-xs font-bold tracking-widest uppercase text-muted">Funil de Conversão</div>
+          <button onclick="loadFunnel()" class="text-xs font-semibold tracking-widest uppercase text-muted hover:text-brown transition-colors">↻ Actualizar</button>
+        </div>
+
+        <!-- Summary cards -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5">
+          <div class="bg-white border border-brown/10 p-4">
+            <div class="text-xs font-bold tracking-widest uppercase text-muted mb-1">Total de Visitas</div>
+            <div class="font-serif text-3xl font-bold text-brown" id="fTotalVisits">—</div>
+          </div>
+          <div class="bg-white border border-brown/10 p-4">
+            <div class="text-xs font-bold tracking-widest uppercase text-muted mb-1">Conversão</div>
+            <div class="font-serif text-3xl font-bold text-brown" id="fConversion">—</div>
+            <div class="text-xs text-muted mt-0.5">visita → WhatsApp</div>
+          </div>
+          <div class="bg-white border border-brown/10 p-4 col-span-2 md:col-span-1">
+            <div class="text-xs font-bold tracking-widest uppercase text-muted mb-1">WhatsApp Hoje</div>
+            <div class="font-serif text-3xl font-bold text-brown" id="fTodayWA">—</div>
+          </div>
+        </div>
+
+        <!-- Funnel bars -->
+        <div class="bg-white border border-brown/10 p-5 md:p-6">
+          <div id="funnelContent">
+            <div class="text-center py-12 text-muted text-xs">A carregar...</div>
+          </div>
         </div>
       </div>
 
@@ -348,7 +384,7 @@
         sessionStorage.setItem('hc_token', d.token);
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('dashMain').classList.remove('hidden');
-        loadStats(); loadOrders(); loadEvents();
+        loadStats(); loadOrders(); loadEvents(); loadFunnel();
         setInterval(poll, 30000);
       } catch(e) { document.getElementById('loginErr').classList.remove('hidden'); }
     }
@@ -360,7 +396,7 @@
         playNotification();
         showToast(`${lastPendingCount - prev} novo(s) pedido(s) pendente(s)!`);
       }
-      if (currentTab === 'orders') loadOrders(); else loadEvents();
+      if (currentTab === 'orders') loadOrders(); else if (currentTab === 'events') loadEvents(); else if (currentTab === 'funnel') loadFunnel();
     }
 
     function logout() {
@@ -402,9 +438,11 @@
       currentTab = tab;
       document.getElementById('panelOrders').classList.toggle('hidden', tab !== 'orders');
       document.getElementById('panelEvents').classList.toggle('hidden', tab !== 'events');
+      document.getElementById('panelFunnel').classList.toggle('hidden', tab !== 'funnel');
       const base = 'flex-1 md:flex-none px-4 md:px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 transition-colors';
       document.getElementById('tabOrders').className = base + (tab==='orders' ? ' border-amber text-brown' : ' border-transparent text-muted hover:text-brown');
       document.getElementById('tabEvents').className = base + (tab==='events' ? ' border-amber text-brown' : ' border-transparent text-muted hover:text-brown');
+      document.getElementById('tabFunnel').className = base + (tab==='funnel' ? ' border-amber text-brown' : ' border-transparent text-muted hover:text-brown');
     }
 
     async function loadStats() {
@@ -634,6 +672,62 @@
       } catch(e) {
         document.getElementById('eventsBodyDesktop').innerHTML = '<tr><td colspan="10" class="text-center py-12 text-red-500 text-xs">Erro ao carregar.</td></tr>';
         document.getElementById('eventsBodyMobile').innerHTML = '<div class="text-center py-8 text-red-500 text-xs">Erro ao carregar.</div>';
+      }
+    }
+
+    // ─── FUNNEL ───────────────────────────────────────────────────────────────
+    async function loadFunnel() {
+      try {
+        const data = await fetch('/api/analytics/funnel', { headers: authHeaders() }).then(r=>r.json());
+        
+        // Update summary cards
+        document.getElementById('fTotalVisits').textContent = data.total_visits || 0;
+        document.getElementById('fConversion').textContent = (data.conversion_rate || 0) + '%';
+        document.getElementById('fTodayWA').textContent = data.wa_sent || 0;
+        
+        // Build funnel visualization
+        const funnelData = [
+          { label: 'Visitou', count: data.total_visits || 0, color: 'bg-brown', next: data.menu_clicked || 0 },
+          { label: 'Ver Menu', count: data.menu_clicked || 0, color: 'bg-amber', next: data.order_started || 0 },
+          { label: 'Fazer Encomenda', count: data.order_started || 0, color: 'bg-gold', next: data.step1_complete || 0 },
+          { label: 'Passo 1 (produtos)', count: data.step1_complete || 0, color: 'bg-cream', next: data.step2_complete || 0 },
+          { label: 'Passo 2 (entrega)', count: data.step2_complete || 0, color: 'bg-warm', next: data.wa_sent || 0 },
+          { label: 'WhatsApp ✓', count: data.wa_sent || 0, color: 'bg-green-600', next: 0 }
+        ];
+        
+        // Calculate percentages
+        const total = data.total_visits || 1;
+        const maxBarWidth = 100;
+        
+        let html = '';
+        funnelData.forEach((step, i) => {
+          const percentage = (step.count / total) * 100;
+          const prevPercentage = i > 0 ? (funnelData[i-1].count / total) * 100 : 100;
+          const drop = i > 0 ? Math.max(0, prevPercentage - percentage) : 0;
+          const isLast = i === funnelData.length - 1;
+          
+          html += `
+            <div style="margin-bottom: 16px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;">${step.label}</span>
+                <span style="font-size:13px;font-weight:700;color:var(--brown);">${step.count}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="flex:1;height:24px;background:var(--cream);border:1px solid rgba(61,30,8,0.1);border-radius:2px;overflow:hidden;">
+                  <div style="height:100%;width:${percentage.toFixed(0)}%;background:var(--brown);transition:width 0.6s ease;"></div>
+                </div>
+                <div style="font-size:11px;font-weight:600;color:var(--muted);min-width:35px;text-align:right;">
+                  ${percentage.toFixed(0)}%
+                </div>
+              </div>
+              ${drop > 0 ? `<div style="font-size:10px;color:var(--amber);margin-top:2px;">↓ ${drop.toFixed(1)}% abandonaram</div>` : ''}
+            </div>
+          `;
+        });
+        
+        document.getElementById('funnelContent').innerHTML = html;
+      } catch(e) {
+        document.getElementById('funnelContent').innerHTML = '<div class="text-center py-12 text-red-500 text-xs">Erro ao carregar.</div>';
       }
     }
   </script>
