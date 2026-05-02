@@ -1907,6 +1907,42 @@
     })();
   </script>
 
+  <!-- Botão WhatsApp flutuante -->
+  <a href="https://wa.me/258852690365" target="_blank" id="waFloat" aria-label="Contactar via WhatsApp">
+    <svg viewBox="0 0 32 32" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/>
+    </svg>
+  </a>
+  <style>
+    #waFloat {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 58px;
+      height: 58px;
+      background: #25D366;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.45);
+      z-index: 9990;
+      text-decoration: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: wa-pulse 2.8s infinite;
+    }
+    #waFloat:hover {
+      transform: scale(1.12);
+      box-shadow: 0 6px 28px rgba(37,211,102,0.6);
+      animation: none;
+    }
+    #waFloat svg { width: 32px; height: 32px; }
+    @keyframes wa-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(37,211,102,0.55); }
+      70%  { box-shadow: 0 0 0 16px rgba(37,211,102,0); }
+      100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); }
+    }
+  </style>
 
 </body>
 </html>

@@ -3,6 +3,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -68,6 +69,28 @@ function dbCheck(res) {
   return true;
 }
 
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+let sessionToken = null;
+
+app.post('/api/auth', (req, res) => {
+  const { password } = req.body;
+  const correct = process.env.DASHBOARD_PASSWORD || 'churros2025';
+  if (password !== correct) {
+    return res.status(401).json({ error: 'Senha incorrecta.' });
+  }
+  sessionToken = crypto.randomBytes(32).toString('hex');
+  res.json({ token: sessionToken });
+});
+
+function authRequired(req, res, next) {
+  const header = req.headers['authorization'] || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (!token || token !== sessionToken) {
+    return res.status(401).json({ error: 'Não autorizado.' });
+  }
+  next();
+}
+
 // ── ORDERS ────────────────────────────────────────────────────────────────────
 app.post('/api/orders', async (req, res) => {
   if (!dbCheck(res)) return;
@@ -85,7 +108,7 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-app.get('/api/orders', async (req, res) => {
+app.get('/api/orders', authRequired, async (req, res) => {
   if (!dbCheck(res)) return;
   try {
     const result = await pool.query('SELECT * FROM orders ORDER BY created_at DESC');
@@ -95,7 +118,7 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
-app.patch('/api/orders/:id/status', async (req, res) => {
+app.patch('/api/orders/:id/status', authRequired, async (req, res) => {
   if (!dbCheck(res)) return;
   try {
     const { status } = req.body;
@@ -126,7 +149,7 @@ app.post('/api/events', async (req, res) => {
   }
 });
 
-app.get('/api/events', async (req, res) => {
+app.get('/api/events', authRequired, async (req, res) => {
   if (!dbCheck(res)) return;
   try {
     const result = await pool.query('SELECT * FROM events ORDER BY created_at DESC');
@@ -136,7 +159,7 @@ app.get('/api/events', async (req, res) => {
   }
 });
 
-app.patch('/api/events/:id/status', async (req, res) => {
+app.patch('/api/events/:id/status', authRequired, async (req, res) => {
   if (!dbCheck(res)) return;
   try {
     const { status } = req.body;
@@ -151,7 +174,7 @@ app.patch('/api/events/:id/status', async (req, res) => {
 });
 
 // ── STATS ─────────────────────────────────────────────────────────────────────
-app.get('/api/stats', async (req, res) => {
+app.get('/api/stats', authRequired, async (req, res) => {
   if (!pool) {
     return res.json({ total_orders: 0, total_events: 0, total_revenue: 0, pending_orders: 0 });
   }

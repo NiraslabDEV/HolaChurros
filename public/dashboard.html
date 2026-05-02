@@ -229,26 +229,84 @@
     </div>
   </div>
 
-  <script>
-    const PASS = 'churros2025';
-    let currentTab = 'orders';
+  <!-- Toast notification -->
+  <div id="toast"
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-brown text-gold text-sm font-bold px-6 py-3 shadow-xl z-50 transition-all duration-300 pointer-events-none flex items-center gap-3">
+    <span>🔔</span><span id="toastMsg"></span>
+  </div>
 
-    function checkLogin() {
+  <script>
+    let currentTab = 'orders';
+    let lastPendingCount = null;
+
+    // ── AUTH ──────────────────────────────────────────────────────────────────
+    function getToken() { return sessionStorage.getItem('hc_token'); }
+    function authHeaders() {
+      return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' };
+    }
+
+    async function checkLogin() {
       const pw = document.getElementById('pwInput').value;
-      if (pw === PASS) {
+      document.getElementById('loginErr').classList.add('hidden');
+      try {
+        const r = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        });
+        const d = await r.json();
+        if (!r.ok) { document.getElementById('loginErr').classList.remove('hidden'); return; }
+        sessionStorage.setItem('hc_token', d.token);
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('dashMain').classList.remove('hidden');
         loadStats(); loadOrders(); loadEvents();
-        setInterval(() => { loadStats(); if(currentTab==='orders') loadOrders(); else loadEvents(); }, 30000);
-      } else {
-        document.getElementById('loginErr').classList.remove('hidden');
+        setInterval(poll, 30000);
+      } catch(e) { document.getElementById('loginErr').classList.remove('hidden'); }
+    }
+
+    async function poll() {
+      const prev = lastPendingCount;
+      await loadStats();
+      if (prev !== null && lastPendingCount > prev) {
+        playNotification();
+        showToast(`${lastPendingCount - prev} novo(s) pedido(s) pendente(s)!`);
       }
+      if (currentTab === 'orders') loadOrders(); else loadEvents();
     }
 
     function logout() {
+      sessionStorage.removeItem('hc_token');
       document.getElementById('loginOverlay').style.display = 'flex';
       document.getElementById('dashMain').classList.add('hidden');
       document.getElementById('pwInput').value = '';
+    }
+
+    // ── SOUND ─────────────────────────────────────────────────────────────────
+    function playNotification() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [0, 0.18, 0.36].forEach(offset => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.frequency.value = 880;
+          gain.gain.setValueAtTime(0.3, ctx.currentTime + offset);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.14);
+          osc.start(ctx.currentTime + offset);
+          osc.stop(ctx.currentTime + offset + 0.15);
+        });
+      } catch(e) {}
+    }
+
+    function showToast(msg) {
+      document.getElementById('toastMsg').textContent = msg;
+      const t = document.getElementById('toast');
+      t.classList.remove('translate-y-20', 'opacity-0');
+      t.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        t.classList.remove('translate-y-0', 'opacity-100');
+        t.classList.add('translate-y-20', 'opacity-0');
+      }, 4500);
     }
 
     function showTab(tab) {
@@ -262,11 +320,12 @@
 
     async function loadStats() {
       try {
-        const d = await fetch('/api/stats').then(r=>r.json());
+        const d = await fetch('/api/stats', { headers: authHeaders() }).then(r=>r.json());
         document.getElementById('statOrders').textContent  = d.total_orders;
         document.getElementById('statPending').textContent = d.pending_orders;
         document.getElementById('statRevenue').textContent = Number(d.total_revenue).toLocaleString() + ' MT';
         document.getElementById('statEvents').textContent  = d.total_events;
+        lastPendingCount = d.pending_orders;
       } catch(e) { console.error(e); }
     }
 
@@ -287,7 +346,7 @@
     async function updateStatus(type, id, status) {
       try {
         await fetch(`/api/${type}/${id}/status`, {
-          method:'PATCH', headers:{'Content-Type':'application/json'},
+          method:'PATCH', headers: authHeaders(),
           body: JSON.stringify({ status })
         });
         loadStats();
@@ -305,7 +364,7 @@
 
     async function loadOrders() {
       try {
-        const orders = await fetch('/api/orders').then(r=>r.json());
+        const orders = await fetch('/api/orders', { headers: authHeaders() }).then(r=>r.json());
         document.getElementById('ordersCount').textContent = orders.length;
 
         if (!orders.length) {
@@ -396,7 +455,7 @@
 
     async function loadEvents() {
       try {
-        const events = await fetch('/api/events').then(r=>r.json());
+        const events = await fetch('/api/events', { headers: authHeaders() }).then(r=>r.json());
         document.getElementById('eventsCount').textContent = events.length;
 
         if (!events.length) {

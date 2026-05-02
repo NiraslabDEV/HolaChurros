@@ -219,9 +219,9 @@ Obs: sem açúcar
 ## Próximas Features (Por Prioridade)
 
 ### Alta prioridade
-- [ ] **Botão WhatsApp flutuante** — fixo no canto inferior direito em todo o site
-- [ ] **Polling de novos pedidos no dashboard** — verificar novos pedidos a cada 30s + notificação sonora
-- [ ] **Segurança do dashboard** — senha verificada no backend (não visível no código fonte)
+- [x] **Botão WhatsApp flutuante** — fixo no canto inferior direito em todo o site (pulse animation)
+- [x] **Polling de novos pedidos no dashboard** — verifica a cada 30s, som via Web Audio API + toast notification
+- [x] **Segurança do dashboard** — POST /api/auth verifica DASHBOARD_PASSWORD env var, token Bearer em todas as rotas protegidas
 
 ### Média prioridade
 - [ ] **"Aberto agora / Fechado"** — indicador em tempo real no hero
