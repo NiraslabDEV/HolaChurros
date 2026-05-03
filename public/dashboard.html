@@ -168,6 +168,10 @@
           class="flex-1 md:flex-none px-4 md:px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 border-transparent text-muted hover:text-brown transition-colors">
           Funil
         </button>
+        <button id="tabRevenue" onclick="showTab('revenue')"
+          class="flex-1 md:flex-none px-4 md:px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 border-transparent text-muted hover:text-brown transition-colors">
+          Faturamento
+        </button>
         <button id="tabReviews" onclick="showTab('reviews')"
           class="flex-1 md:flex-none px-4 md:px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 border-transparent text-muted hover:text-brown transition-colors">
           Avaliações
@@ -295,6 +299,74 @@
           <div id="funnelContent">
             <div class="text-center py-12 text-muted text-xs">A carregar...</div>
           </div>
+        </div>
+      </div>
+
+      <!-- REVENUE PANEL -->
+      <div id="panelRevenue" class="hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <div>
+            <div class="text-xs font-bold tracking-widest uppercase text-muted">Faturamento</div>
+            <div class="text-xs text-muted mt-0.5 opacity-60">Receita · Zonas · Clientes</div>
+          </div>
+          <div class="flex items-center gap-1 bg-warm p-1">
+            <button id="btnPeriodD" onclick="setRevPeriod('daily')"
+              class="px-3 py-1.5 text-xs font-bold tracking-widest uppercase transition-colors bg-brown text-gold">Diário</button>
+            <button id="btnPeriodM" onclick="setRevPeriod('monthly')"
+              class="px-3 py-1.5 text-xs font-bold tracking-widest uppercase transition-colors text-muted hover:text-brown">Mensal</button>
+            <button id="btnPeriodA" onclick="setRevPeriod('annual')"
+              class="px-3 py-1.5 text-xs font-bold tracking-widest uppercase transition-colors text-muted hover:text-brown">Anual</button>
+          </div>
+        </div>
+
+        <!-- KPI cards -->
+        <div class="grid grid-cols-3 gap-3 mb-5">
+          <div class="bg-white border border-brown/10 p-4 md:p-5">
+            <div class="text-xs font-bold tracking-widest uppercase text-muted mb-2">Receita do Período</div>
+            <div class="font-serif text-2xl md:text-3xl font-bold text-brown" id="revTotal">—</div>
+            <div class="text-xs text-muted mt-1 opacity-60" id="revTotalSub">—</div>
+          </div>
+          <div class="bg-white border border-brown/10 p-4 md:p-5">
+            <div class="text-xs font-bold tracking-widest uppercase text-muted mb-2">Pedidos</div>
+            <div class="font-serif text-2xl md:text-3xl font-bold text-brown" id="revOrders">—</div>
+            <div class="text-xs text-muted mt-1 opacity-60" id="revOrdersSub">—</div>
+          </div>
+          <div class="bg-amber/10 border border-amber/25 p-4 md:p-5">
+            <div class="text-xs font-bold tracking-widest uppercase text-amber mb-2">Ticket Médio</div>
+            <div class="font-serif text-2xl md:text-3xl font-bold text-brown" id="revAvg">—</div>
+            <div class="text-xs text-muted mt-1 opacity-60">por pedido</div>
+          </div>
+        </div>
+
+        <!-- Bar chart -->
+        <div class="bg-white border border-brown/10 p-5 md:p-6 mb-5">
+          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-4" id="revChartTitle">Evolução de Receita</div>
+          <div id="revChart"><div class="text-center py-12 text-muted text-xs">A carregar...</div></div>
+        </div>
+
+        <!-- Regions + Top Customers -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          <!-- Regions -->
+          <div class="bg-white border border-brown/10 p-5">
+            <div class="text-xs font-bold tracking-widest uppercase text-muted mb-4">📍 Top Zonas de Entrega</div>
+            <div id="regionsContent"><div class="text-center py-8 text-muted text-xs">A carregar...</div></div>
+          </div>
+
+          <!-- Top Customers -->
+          <div class="bg-white border border-brown/10 p-5">
+            <div class="flex items-center justify-between mb-4">
+              <div class="text-xs font-bold tracking-widest uppercase text-muted">🏆 Top Clientes</div>
+              <div class="flex items-center gap-1 bg-warm p-0.5">
+                <button id="btnCustM" onclick="setCustomerPeriod('month')"
+                  class="px-2.5 py-1 text-xs font-bold uppercase tracking-widest bg-brown text-gold transition-colors">Este mês</button>
+                <button id="btnCustA" onclick="setCustomerPeriod('all')"
+                  class="px-2.5 py-1 text-xs font-bold uppercase tracking-widest text-muted hover:text-brown transition-colors">Sempre</button>
+              </div>
+            </div>
+            <div id="customersContent"><div class="text-center py-8 text-muted text-xs">A carregar...</div></div>
+          </div>
+
         </div>
       </div>
 
@@ -447,7 +519,10 @@
         playNotification();
         showToast(`${lastPendingCount - prev} novo(s) pedido(s) pendente(s)!`);
       }
-      if (currentTab === 'orders') loadOrders(); else if (currentTab === 'events') loadEvents(); else if (currentTab === 'funnel') loadFunnel();
+      if (currentTab === 'orders') loadOrders();
+      else if (currentTab === 'events') loadEvents();
+      else if (currentTab === 'funnel') loadFunnel();
+      else if (currentTab === 'revenue') loadRevenue();
     }
 
     function logout() {
@@ -487,15 +562,17 @@
 
     function showTab(tab) {
       currentTab = tab;
-      ['orders','events','funnel','reviews'].forEach(t => {
+      ['orders','events','funnel','revenue','reviews'].forEach(t => {
         document.getElementById('panel' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('hidden', tab !== t);
       });
       const base = 'flex-1 md:flex-none px-4 md:px-6 py-3 text-xs font-bold tracking-widest uppercase border-b-2 transition-colors';
       document.getElementById('tabOrders').className  = base + (tab==='orders'  ? ' border-amber text-brown' : ' border-transparent text-muted hover:text-brown');
       document.getElementById('tabEvents').className  = base + (tab==='events'  ? ' border-amber text-brown' : ' border-transparent text-muted hover:text-brown');
       document.getElementById('tabFunnel').className  = base + (tab==='funnel'  ? ' border-amber text-brown' : ' border-transparent text-muted hover:text-brown');
+      document.getElementById('tabRevenue').className = base + (tab==='revenue' ? ' border-amber text-brown' : ' border-transparent text-muted hover:text-brown');
       document.getElementById('tabReviews').className = base + (tab==='reviews' ? ' border-amber text-brown' : ' border-transparent text-muted hover:text-brown');
       if (tab === 'reviews') loadReviews();
+      if (tab === 'revenue') loadRevenue();
     }
 
     async function loadStats() {
@@ -824,6 +901,140 @@
       } catch(e) {
         document.getElementById('funnelContent').innerHTML = '<div style="text-align:center;padding:48px 0;color:#C8960C;font-size:12px;font-weight:600;">Erro ao carregar funil.</div>';
       }
+    }
+
+    // ─── REVENUE / REGIONS / TOP CUSTOMERS ───────────────────────────────────
+    let currentRevPeriod = 'daily';
+    let currentCustPeriod = 'month';
+
+    function fmtMT(v) {
+      if (v >= 1000000) return (v/1000000).toFixed(1) + 'M MT';
+      if (v >= 1000)    return (v/1000).toFixed(0) + 'k MT';
+      return v.toLocaleString() + ' MT';
+    }
+    function fmtK(v) {
+      if (v >= 1000000) return (v/1000000).toFixed(1)+'M';
+      if (v >= 1000)    return (v/1000).toFixed(0)+'k';
+      return v.toLocaleString();
+    }
+
+    function buildBarChart(data) {
+      if (!data.length) return '<div style="text-align:center;padding:48px 0;color:#8C7045;font-size:12px;">Sem dados para o período.</div>';
+      const max = Math.max(...data.map(d => d.revenue), 1);
+      const W=800, H=210, PL=56, PR=12, PT=10, PB=42;
+      const cW=W-PL-PR, cH=H-PT-PB;
+      const n=data.length, barW=Math.max(8,Math.min(38, cW/n*0.62));
+      const gap=cW/n;
+      let svgParts='';
+      // Y grid + labels
+      for(let i=1;i<=4;i++){
+        const y=PT+cH-cH*i/4;
+        const v=max*i/4;
+        svgParts+=`<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}" stroke="rgba(61,30,8,0.07)" stroke-width="1"/>`;
+        svgParts+=`<text x="${PL-6}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-size="9" fill="#8C7045" font-family="DM Sans,sans-serif">${fmtK(v)}</text>`;
+      }
+      // Axis line
+      svgParts+=`<line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+cH}" stroke="rgba(61,30,8,0.15)" stroke-width="1"/>`;
+      // Bars
+      data.forEach((d,i)=>{
+        const x=PL+(i+0.5)*gap-barW/2;
+        const bH=Math.max(2,(d.revenue/max)*cH);
+        const y=PT+cH-bH;
+        const isMax=(d.revenue===max);
+        svgParts+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW}" height="${bH.toFixed(1)}" fill="${isMax?'#C8960C':'#3D1E08'}" rx="2"/>`;
+        if(bH>18){
+          svgParts+=`<text x="${(x+barW/2).toFixed(1)}" y="${(y-4).toFixed(1)}" text-anchor="middle" font-size="9" fill="${isMax?'#C8960C':'#3D1E08'}" font-weight="700" font-family="DM Sans,sans-serif">${fmtK(d.revenue)}</text>`;
+        }
+        // X label — skip some if too many
+        if(n<=16 || i%Math.ceil(n/16)===0){
+          const lbl = n>20 ? d.label.split('/')[0] : d.label;
+          svgParts+=`<text x="${(x+barW/2).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="9" fill="#8C7045" font-family="DM Sans,sans-serif">${lbl}</text>`;
+        }
+      });
+      return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">${svgParts}</svg>`;
+    }
+
+    async function loadRevenue() {
+      try {
+        const data = await fetch(`/api/revenue?period=${currentRevPeriod}`, { headers: authHeaders() }).then(r=>r.json());
+        const totalRev   = data.reduce((s,d)=>s+d.revenue,0);
+        const totalOrd   = data.reduce((s,d)=>s+d.orders,0);
+        const avg        = totalOrd > 0 ? Math.round(totalRev/totalOrd) : 0;
+        const periodLabel= {daily:'últimos 30 dias',monthly:'últimos 12 meses',annual:'todo o período'}[currentRevPeriod];
+        document.getElementById('revTotal').textContent    = fmtMT(totalRev);
+        document.getElementById('revTotalSub').textContent = periodLabel;
+        document.getElementById('revOrders').textContent   = totalOrd.toLocaleString();
+        document.getElementById('revOrdersSub').textContent= periodLabel;
+        document.getElementById('revAvg').textContent      = fmtMT(avg);
+        document.getElementById('revChartTitle').textContent = `Receita — ${periodLabel}`;
+        document.getElementById('revChart').innerHTML = buildBarChart(data);
+        loadRegions();
+        loadTopCustomers();
+      } catch(e) {
+        document.getElementById('revChart').innerHTML='<div class="text-center py-8 text-red-500 text-xs">Erro ao carregar.</div>';
+      }
+    }
+
+    function setRevPeriod(p) {
+      currentRevPeriod = p;
+      const btns={daily:'btnPeriodD',monthly:'btnPeriodM',annual:'btnPeriodA'};
+      const activeC='bg-brown text-gold', inactiveC='text-muted hover:text-brown';
+      Object.entries(btns).forEach(([k,id])=>{
+        const b=document.getElementById(id);
+        b.className='px-3 py-1.5 text-xs font-bold tracking-widest uppercase transition-colors '+(k===p?activeC:inactiveC);
+      });
+      loadRevenue();
+    }
+
+    async function loadRegions() {
+      const el = document.getElementById('regionsContent');
+      try {
+        const data = await fetch('/api/regions', { headers: authHeaders() }).then(r=>r.json());
+        if (!data.length) { el.innerHTML='<div class="text-center py-8 text-muted text-xs">Sem dados de zonas ainda.</div>'; return; }
+        const maxOrd = Math.max(...data.map(d=>d.orders),1);
+        el.innerHTML = data.map((d,i)=>`
+          <div style="margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;">
+              <span style="font-size:12px;font-weight:600;color:#1c1008;">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'   '} ${d.zone}</span>
+              <span style="font-size:11px;color:#8C7045;">${d.orders} pedido${d.orders!==1?'s':''} · ${fmtMT(d.revenue)}</span>
+            </div>
+            <div style="height:6px;background:rgba(61,30,8,0.08);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:${((d.orders/maxOrd)*100).toFixed(1)}%;background:${i===0?'#C8960C':'#3D1E08'};border-radius:3px;transition:width 0.7s;"></div>
+            </div>
+          </div>`).join('');
+      } catch(e) { el.innerHTML='<div class="text-center py-8 text-red-500 text-xs">Erro.</div>'; }
+    }
+
+    function setCustomerPeriod(p) {
+      currentCustPeriod = p;
+      document.getElementById('btnCustM').className='px-2.5 py-1 text-xs font-bold uppercase tracking-widest transition-colors '+(p==='month'?'bg-brown text-gold':'text-muted hover:text-brown');
+      document.getElementById('btnCustA').className='px-2.5 py-1 text-xs font-bold uppercase tracking-widest transition-colors '+(p==='all'?'bg-brown text-gold':'text-muted hover:text-brown');
+      loadTopCustomers();
+    }
+
+    async function loadTopCustomers() {
+      const el = document.getElementById('customersContent');
+      try {
+        const data = await fetch(`/api/customers/top?period=${currentCustPeriod}`, { headers: authHeaders() }).then(r=>r.json());
+        if (!data.length) { el.innerHTML='<div class="text-center py-8 text-muted text-xs">Sem pedidos no período.</div>'; return; }
+        const medals=['🥇','🥈','🥉'];
+        el.innerHTML = data.map((c,i)=>{
+          const initials = c.name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+          const lastDate = new Date(c.last_order).toLocaleDateString('pt-MZ',{day:'2-digit',month:'2-digit'});
+          return `
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid rgba(61,30,8,0.07);">
+            <div style="flex-shrink:0;width:34px;height:34px;border-radius:50%;background:${i<3?'#3D1E08':'#F0E6C8'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:${i<3?'#F5C518':'#8C7045'};">${i<3?medals[i]:initials}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;font-weight:700;color:#1c1008;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
+              <div style="font-size:10px;color:#8C7045;margin-top:1px;">último pedido ${lastDate}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;">
+              <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#3D1E08;">${c.orders} ped.</div>
+              <div style="font-size:10px;color:#8C7045;">${fmtMT(c.revenue)}</div>
+            </div>
+          </div>`;
+        }).join('');
+      } catch(e) { el.innerHTML='<div class="text-center py-8 text-red-500 text-xs">Erro.</div>'; }
     }
 
     async function loadReviews() {

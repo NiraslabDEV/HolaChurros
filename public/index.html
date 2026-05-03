@@ -1030,6 +1030,106 @@
 
     /* ── 3D TILT ── */
     .tilt-wrap { transform-style: preserve-3d; will-change: transform; }
+
+    /* ── PRODUCT MODAL ── */
+    #prodModal {
+      position: fixed; inset: 0; z-index: 8000;
+      background: rgba(28,16,8,0.84);
+      backdrop-filter: blur(14px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity 0.32s ease, visibility 0.32s;
+    }
+    #prodModal.open { opacity: 1; visibility: visible; pointer-events: auto; }
+    #prodModalInner {
+      background: var(--cream);
+      width: 100%; max-width: 860px; max-height: 90vh;
+      display: grid; grid-template-columns: 42% 1fr;
+      overflow: hidden; position: relative;
+      transform: translateY(28px) scale(0.96);
+      transition: transform 0.42s cubic-bezier(.34,1.1,.64,1);
+    }
+    #prodModal.open #prodModalInner { transform: none; }
+    #prodModalImgWrap { position: relative; overflow: hidden; }
+    #prodModalPhoto { width: 100%; height: 100%; object-fit: cover; display: block; }
+    #prodModalClose {
+      position: absolute; top: 14px; right: 14px;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: rgba(28,16,8,0.72); color: #fff;
+      border: none; cursor: pointer; font-size: 19px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.18s; z-index: 2;
+    }
+    #prodModalClose:hover { background: var(--brown); }
+    #prodModalInfo {
+      padding: 40px 36px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .pm-certs { display: flex; gap: 7px; flex-wrap: wrap; }
+    .pm-cert {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 5px 11px;
+    }
+    .pm-cert-veg { background: #d1fae5; color: #065f46; }
+    .pm-cert-hal { background: #dbeafe; color: #1e3a8a; }
+    .pm-cat  { font-size: 10px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--amber); }
+    .pm-name { font-family:'Playfair Display',serif; font-size: 34px; font-weight: 900; color: var(--brown); line-height: 1.1; }
+    .pm-desc { font-size: 15px; color: var(--ink); line-height: 1.68; }
+    .pm-detail { font-size: 13px; color: var(--muted); line-height: 1.65; }
+    .pm-ing-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+    .pm-ing-val { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .pm-divider { border: none; border-top: 1px solid rgba(61,30,8,0.1); margin: 2px 0; }
+    .pm-sizes { display: flex; flex-direction: column; gap: 6px; }
+    .pm-size-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 16px; background: var(--white);
+      border: 1px solid rgba(61,30,8,0.1);
+    }
+    .pm-size-lbl { font-size: 12px; font-weight: 600; color: var(--ink); }
+    .pm-size-price {
+      font-family:'Playfair Display',serif; font-size: 24px;
+      font-weight: 700; color: var(--brown); line-height: 1;
+    }
+    .pm-size-price sup {
+      font-family:'DM Sans',sans-serif; font-size: 11px;
+      font-weight: 400; color: var(--muted); vertical-align: super;
+    }
+    .pm-cta {
+      display: flex; align-items: center; justify-content: center;
+      background: var(--brown); color: var(--gold);
+      font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+      padding: 16px 28px; border: none; cursor: pointer; width: 100%;
+      text-decoration: none; transition: background 0.2s; margin-top: 4px;
+    }
+    .pm-cta:hover { background: var(--ink); }
+    .pm-cta-store {
+      background: transparent; color: var(--brown);
+      border: 1px solid rgba(61,30,8,0.25);
+    }
+    .pm-cta-store:hover { background: var(--warm); }
+
+    /* cursor pointer on clickable menu cards */
+    .menu-photo-cell, .menu-item-cell, .rechado-card, .gourmet-tile { cursor: pointer; }
+    .menu-item-cell { cursor: pointer; }
+
+    /* image hint overlay */
+    .pm-img-hint {
+      position: absolute; bottom: 14px; right: 14px;
+      background: rgba(28,16,8,0.65); color: rgba(251,245,230,0.9);
+      font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+      padding: 5px 11px; opacity: 0;
+      transition: opacity 0.25s; pointer-events: none;
+    }
+    .menu-photo-cell:hover .pm-img-hint,
+    .gourmet-tile:hover .pm-img-hint { opacity: 1; }
+
+    @media (max-width: 680px) {
+      #prodModalInner { grid-template-columns: 1fr; grid-template-rows: 220px 1fr; }
+      #prodModalInfo  { padding: 24px 22px; gap: 12px; }
+      .pm-name { font-size: 26px; }
+    }
   </style>
 </head>
 <body>
@@ -1177,14 +1277,15 @@
 
       <div class="menu-espanhois r">
         <!-- Photo column -->
-        <div class="menu-photo-cell reveal">
+        <div class="menu-photo-cell reveal" onclick="openProdModal('espanhois')">
           <img
             src="uploads/churros-espanhois-artesanais-churreria-maputo.webp"
             alt="Churros Espanhóis artesanais com Nutella e canela — Churreria ¡Hola Churros! Maputo"
           />
+          <div class="pm-img-hint">Ver detalhes</div>
         </div>
         <!-- 4 unidades -->
-        <div class="menu-item-cell">
+        <div class="menu-item-cell" onclick="openProdModal('espanhois')">
           <div>
             <div class="qty-label">Porção</div>
             <div class="item-title">4 unidades</div>
@@ -1198,7 +1299,7 @@
           </div>
         </div>
         <!-- 6 unidades -->
-        <div class="menu-item-cell highlight">
+        <div class="menu-item-cell highlight" onclick="openProdModal('espanhois')">
           <div>
             <div class="qty-label">Porção</div>
             <div class="item-title">6 unidades</div>
@@ -1212,7 +1313,7 @@
           </div>
         </div>
         <!-- 12 unidades -->
-        <div class="menu-item-cell">
+        <div class="menu-item-cell" onclick="openProdModal('espanhois')">
           <div>
             <div class="qty-label">Porção familiar</div>
             <div class="item-title">12 unidades</div>
@@ -1771,6 +1872,7 @@
           }),
           sauce: state.cartItems.filter(function(i){ return i.sauce; }).map(function(i){ return i.sauce; }).join(', ') || null,
           total: total, notes: state.notes,
+          zone: state.zone || null,
           email: state.email.trim() || null
         })
       }).catch(function(e){ console.warn('DB:',e); });
