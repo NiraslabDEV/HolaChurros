@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Avaliação — ¡Hola Churros!</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --brown: #3D1E08; --amber: #C8960C; --gold: #F5C518;
+      --cream: #FBF5E6; --warm:  #F0E6C8; --muted: #8C7045; --ink: #1c1008;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--brown);
+      padding: 22px 24px;
+      text-align: center;
+    }
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 900;
+      font-size: 26px;
+      color: var(--gold);
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      display: block;
+    }
+    .logo-sub {
+      font-size: 10px;
+      color: rgba(251,245,230,0.45);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-top: 4px;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    /* ── MAIN ── */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 20px;
+    }
+
+    .card {
+      background: white;
+      max-width: 460px;
+      width: 100%;
+      padding: 40px;
+    }
+    .card-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 10px;
+    }
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--brown);
+      line-height: 1.15;
+      margin-bottom: 6px;
+    }
+    .card-sub {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    /* ── STARS ── */
+    .stars-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .stars {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+    .star {
+      font-size: 36px;
+      cursor: pointer;
+      transition: transform 0.12s ease, filter 0.12s ease;
+      filter: grayscale(1) opacity(0.2);
+      line-height: 1;
+      user-select: none;
+    }
+    .star.lit { filter: none; }
+    .star:hover { transform: scale(1.18); }
+    .star.active { transform: scale(1.1); }
+
+    /* ── COMMENT ── */
+    .field { margin-bottom: 20px; }
+    label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(61,30,8,0.18);
+      background: var(--cream);
+      padding: 12px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      resize: vertical;
+      min-height: 96px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: var(--amber); }
+    textarea::placeholder { color: rgba(140,112,69,0.45); }
+
+    /* ── BUTTON ── */
+    .btn {
+      display: block;
+      width: 100%;
+      background: var(--brown);
+      color: var(--gold);
+      border: none;
+      padding: 15px 24px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover:not(:disabled) { background: var(--ink); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .error-msg {
+      font-size: 13px;
+      color: #c0392b;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    /* ── SUCCESS ── */
+    .success { text-align: center; }
+    .success-icon { font-size: 52px; margin-bottom: 14px; line-height: 1; }
+    .success-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--brown);
+      margin-bottom: 8px;
+    }
+    .success-body { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+    /* ── LOYALTY ── */
+    .loyalty-bar {
+      background: var(--warm);
+      border: 1px solid rgba(200,150,12,0.18);
+      padding: 16px 18px;
+      margin-top: 22px;
+      text-align: left;
+    }
+    .loyalty-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 10px;
+    }
+    .loyalty-dots {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .loyalty-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(61,30,8,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: background 0.3s;
+    }
+    .loyalty-dot.filled { background: var(--gold); }
+    .loyalty-text { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    /* ── REWARD ── */
+    .reward-banner {
+      background: var(--gold);
+      padding: 14px 16px;
+      text-align: center;
+      margin-top: 14px;
+    }
+    .reward-text { font-size: 14px; font-weight: 700; color: var(--brown); }
+    .reward-sub { font-size: 11px; color: rgba(61,30,8,0.55); margin-top: 3px; }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 22px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--brown); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--brown);
+      padding: 16px;
+      text-align: center;
+    }
+    .footer-text {
+      font-size: 10px;
+      color: rgba(251,245,230,0.4);
+      letter-spacing: 0.06em;
+    }
+
+    @media (max-width: 500px) {
+      .card { padding: 28px 20px; }
+      .star { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="logo">¡Hola Churros!</a>
+    <div class="logo-sub">Churreria Artesanal · Maputo</div>
+  </header>
+
+  <main>
+
+    <!-- Loading -->
+    <div class="card" id="loadingCard">
+      <div class="card-tag">A carregar…</div>
+      <div class="card-title" style="font-size:18px;color:var(--muted);">Um momento…</div>
+    </div>
+
+    <!-- Review form -->
+    <div class="card" id="reviewCard" style="display:none;">
+      <div class="card-tag">Avaliação</div>
+      <h1 class="card-title" id="reviewTitle">Como foi a sua experiência?</h1>
+      <p class="card-sub" id="reviewSub">A sua opinião ajuda-nos a melhorar a cada churro.</p>
+
+      <div class="stars-label">Avaliação</div>
+      <div class="stars" id="starsRow">
+        <span class="star" data-v="1">⭐</span>
+        <span class="star" data-v="2">⭐</span>
+        <span class="star" data-v="3">⭐</span>
+        <span class="star" data-v="4">⭐</span>
+        <span class="star" data-v="5">⭐</span>
+      </div>
+
+      <div class="field">
+        <label>Comentário <span style="font-weight:400;opacity:.55">(opcional)</span></label>
+        <textarea id="reviewComment" placeholder="Conta-nos a tua experiência…"></textarea>
+      </div>
+
+      <div class="error-msg" id="reviewError"></div>
+      <button class="btn" id="reviewBtn" onclick="submitReview()">Enviar Avaliação</button>
+    </div>
+
+    <!-- Already reviewed -->
+    <div class="card" id="alreadyCard" style="display:none;">
+      <div class="card-tag">Avaliação</div>
+      <h2 class="card-title">Já avaliou este pedido</h2>
+      <p class="card-sub">Obrigado pelo seu feedback! A sua opinião é muito importante para nós.</p>
+      <a href="/" class="back-link">← Voltar ao site</a>
+    </div>
+
+    <!-- Success -->
+    <div class="card success" id="successCard" style="display:none;">
+      <div class="success-icon" id="successIcon">🙏</div>
+      <h2 class="success-title" id="successTitle">Obrigado!</h2>
+      <p class="success-body" id="successBody">A sua avaliação foi guardada.</p>
+
+      <div class="loyalty-bar" id="loyaltyBar">
+        <div class="loyalty-title">Programa de Fidelidade</div>
+        <div class="loyalty-dots" id="loyaltyDots"></div>
+        <div class="loyalty-text" id="loyaltyText"></div>
+      </div>
+
+      <div class="reward-banner" id="rewardBanner" style="display:none;">
+        <div class="reward-text">🎉 Molho Extra GRÁTIS no próximo pedido!</div>
+        <div class="reward-sub">Mostre esta página à nossa equipa ao fazer o próximo pedido.</div>
+      </div>
+
+      <a href="/" class="back-link">← Encomendar mais churros</a>
+    </div>
+
+    <!-- Error -->
+    <div class="card" id="errorCard" style="display:none;">
+      <div class="card-tag">Erro</div>
+      <h2 class="card-title">Link inválido</h2>
+      <p class="card-sub">Este link não é válido ou já expirou. Só clientes com encomenda têm acesso à avaliação.</p>
+      <a href="/" class="back-link">← Voltar ao site</a>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="footer-text">Av. Amílcar Cabral, 856 · Maputo · +258 85 269 0365</div>
+  </footer>
+
+  <script>
+    const token = location.pathname.split('/review/')[1] || '';
+    let selectedRating = 0;
+
+    // ── Load order info ────────────────────────────────────────────────────────
+    fetch(`/api/review/${token}`)
+      .then(r => r.json())
+      .then(data => {
+        hide('loadingCard');
+        if (data.error)           { show('errorCard');   return; }
+        if (data.already_reviewed){ show('alreadyCard'); return; }
+
+        const o = data.order;
+        document.getElementById('reviewTitle').textContent = `Como foi o pedido #${o.id}?`;
+        document.getElementById('reviewSub').textContent   = `Olá, ${o.customer_name}! A tua opinião ajuda-nos a melhorar.`;
+        show('reviewCard');
+      })
+      .catch(() => { hide('loadingCard'); show('errorCard'); });
+
+    // ── Stars ──────────────────────────────────────────────────────────────────
+    const starEls = document.querySelectorAll('.star');
+
+    starEls.forEach(s => {
+      s.addEventListener('click', () => {
+        selectedRating = parseInt(s.dataset.v);
+        updateStars(selectedRating);
+      });
+      s.addEventListener('mouseenter', () => updateStars(parseInt(s.dataset.v)));
+    });
+    document.getElementById('starsRow').addEventListener('mouseleave', () => updateStars(selectedRating));
+
+    function updateStars(v) {
+      starEls.forEach((s, i) => {
+        s.classList.toggle('lit',    i < v);
+        s.classList.toggle('active', i < selectedRating);
+      });
+    }
+
+    // ── Submit ─────────────────────────────────────────────────────────────────
+    function submitReview() {
+      const errEl = document.getElementById('reviewError');
+      if (!selectedRating) {
+        errEl.textContent = 'Por favor selecione uma avaliação de 1 a 5 estrelas.';
+        errEl.style.display = 'block';
+        return;
+      }
+      errEl.style.display = 'none';
+
+      const btn = document.getElementById('reviewBtn');
+      btn.disabled = true;
+      btn.textContent = 'A enviar…';
+
+      const comment = document.getElementById('reviewComment').value.trim();
+
+      fetch(`/api/review/${token}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: selectedRating, comment })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) {
+            errEl.textContent = data.error;
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Enviar Avaliação';
+            return;
+          }
+          showSuccess(data);
+        })
+        .catch(() => {
+          errEl.textContent = 'Erro ao enviar. Tente novamente.';
+          errEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Enviar Avaliação';
+        });
+    }
+
+    // ── Show success ───────────────────────────────────────────────────────────
+    function showSuccess(data) {
+      hide('reviewCard');
+      show('successCard');
+
+      const icons  = ['', '😐', '🙂', '😊', '😄', '🤩'];
+      const titles = ['', 'Obrigado pelo feedback.', 'Obrigado!', 'Ficámos contentes!', 'Adorámos!', 'Que alegria! 🎉'];
+      document.getElementById('successIcon').textContent  = icons[selectedRating]  || '🙏';
+      document.getElementById('successTitle').textContent = titles[selectedRating] || 'Obrigado!';
+      document.getElementById('successBody').textContent  =
+        `Avaliação de ${selectedRating} ${selectedRating === 1 ? 'estrela' : 'estrelas'} guardada. Muito obrigado, ${data.loyalty_count > 1 ? 'cliente fiel' : 'amigo'}!`;
+
+      // Loyalty dots
+      const count    = data.loyalty_count;
+      const position = ((count - 1) % 5) + 1;
+      let dots = '';
+      for (let i = 1; i <= 5; i++) {
+        dots += `<div class="loyalty-dot ${i <= position ? 'filled' : ''}">⭐</div>`;
+      }
+      document.getElementById('loyaltyDots').innerHTML = dots;
+
+      if (data.is_reward) {
+        document.getElementById('loyaltyText').textContent = `${count} avaliações — nível atingido! 🏆`;
+        show('rewardBanner');
+      } else {
+        const rem = 5 - position;
+        document.getElementById('loyaltyText').textContent =
+          `${count} avaliação${count !== 1 ? 'ões' : ''}. Faltam ${rem} para o molho extra grátis!`;
+      }
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    function show(id) { document.getElementById(id).style.display = ''; }
+    function hide(id) { document.getElementById(id).style.display = 'none'; }
+  </script>
+
+</body>
+</html>
