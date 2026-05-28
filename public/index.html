@@ -1798,7 +1798,19 @@
       if (pt) state.pickup_time = pt.value;
     }
     function pickZone() { syncInputs(); render(); }
-    function goStep(n)   { syncInputs(); if (n === 1 && state.step === 0 && state.cartItems.length > 0) { if (window.track) window.track('step1_complete', { items: state.cartItems.length }); } state.step = n; render(); }
+    function scrollToForm() {
+      var mount = document.getElementById('orderFormMount');
+      if (!mount) return;
+      var y = mount.getBoundingClientRect().top + window.scrollY - 72;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    }
+    function goStep(n) {
+      syncInputs();
+      if (n === 1 && state.step === 0 && state.cartItems.length > 0) { if (window.track) window.track('step1_complete', { items: state.cartItems.length }); }
+      state.step = n;
+      render();
+      scrollToForm();
+    }
     function validate() {
       syncInputs();
       var e = {};
@@ -1809,6 +1821,7 @@
       state.errs = e;
       if (!Object.keys(e).length) { if (window.track) window.track('step2_complete', { zone: state.zone }); state.step = 2; }
       render();
+      scrollToForm();
     }
     function sendWA() {
       if (window.track) window.track('wa_sent');
