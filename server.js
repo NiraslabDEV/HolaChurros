@@ -560,6 +560,29 @@ app.get('/api/customers/top', adminOnly, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ── ANIVERSARIANTES DO MÊS ────────────────────────────────────────────────────
+app.get('/api/customers/birthdays', adminOnly, async (req, res) => {
+  if (!pool) return res.json([]);
+  // mes pode ser passado como ?month=MM, senão usa o mês actual
+  const month = (req.query.month || String(new Date().getMonth() + 1)).padStart(2, '0');
+  try {
+    const result = await pool.query(`
+      SELECT
+        o.phone,
+        (SELECT customer_name FROM orders WHERE phone = o.phone ORDER BY created_at DESC LIMIT 1) AS name,
+        (SELECT email FROM orders WHERE phone = o.phone AND email IS NOT NULL ORDER BY created_at DESC LIMIT 1) AS email,
+        (SELECT birthday FROM orders WHERE phone = o.phone AND birthday IS NOT NULL ORDER BY created_at DESC LIMIT 1) AS birthday,
+        COUNT(DISTINCT o.id)::int AS total_orders
+      FROM orders o
+      WHERE birthday IS NOT NULL
+        AND RIGHT(birthday, 2) = $1
+      GROUP BY o.phone
+      ORDER BY LEFT(birthday, 2)::int ASC
+    `, [month]);
+    res.json(result.rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ── TOP PRODUCTS ──────────────────────────────────────────────────────────────
 app.get('/api/products/top', adminOnly, async (req, res) => {
   if (!pool) return res.json([]);
@@ -659,6 +682,63 @@ app.get('/dashboard', (req, res) => {
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ── BIRTHDAY EMAILS ───────────────────────────────────────────────────────────
+function tplBirthday(name) {
+  return tplBase(`
+    <div style="font-size:48px;line-height:1;margin-bottom:16px;">🎂</div>
+    <h2 style="color:#3D1E08;font-size:22px;margin:0 0 12px;font-weight:900;">Feliz Aniversário, ${name}! 🎉</h2>
+    <p style="color:#8C7045;font-size:14px;font-family:Arial,sans-serif;line-height:1.7;margin:0 0 20px;">
+      A toda a equipa ¡Hola Churros! deseja-lhe um aniversário cheio de alegria, amor e… muitos churros! 🥳<br/>
+      Como forma de celebrar este dia especial, tem um <strong style="color:#3D1E08;">mimo exclusivo</strong> à sua espera.
+    </p>
+    <div style="background:#F0E6C8;padding:18px 20px;margin-bottom:20px;text-align:center;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#8C7045;font-family:Arial,sans-serif;margin-bottom:8px;">Oferta de Aniversário</div>
+      <div style="font-size:26px;font-weight:900;color:#3D1E08;font-family:Georgia,serif;">Entrega grátis</div>
+      <div style="font-size:13px;color:#8C7045;font-family:Arial,sans-serif;margin-top:4px;">no seu próximo pedido neste mês 🎁</div>
+    </div>
+    <a href="https://holachurrosmz.up.railway.app/#order"
+      style="display:inline-block;background:#3D1E08;color:#F5C518;padding:14px 28px;text-decoration:none;font-family:Arial,sans-serif;font-size:13px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;">
+      Encomendar agora →
+    </a>
+    <p style="color:#8C7045;font-size:11px;font-family:Arial,sans-serif;margin:16px 0 0;opacity:.7;">
+      * Oferta válida durante o mês do aniversário. Aplicável a pedidos com entrega.
+    </p>
+  `);
+}
+
+// Enviar email para 1 aniversariante
+app.post('/api/birthday/email', adminOnly, async (req, res) => {
+  const { email, name } = req.body;
+  if (!email || !name) return res.status(400).json({ error: 'email e name obrigatórios' });
+  const ok = await sendEmail(email, `¡Hola Churros! — Feliz Aniversário, ${name}! 🎂`, tplBirthday(name));
+  if (ok) res.json({ success: true });
+  else res.status(503).json({ error: 'SMTP não configurado ou falhou.' });
+});
+
+// Enviar email para todos aniversariantes do mês com email
+app.post('/api/birthday/email/all', adminOnly, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'BD inactiva.' });
+  const month = (req.query.month || String(new Date().getMonth() + 1)).padStart(2, '0');
+  try {
+    const result = await pool.query(`
+      SELECT phone,
+        (SELECT customer_name FROM orders WHERE phone = o.phone ORDER BY created_at DESC LIMIT 1) AS name,
+        (SELECT email FROM orders WHERE phone = o.phone AND email IS NOT NULL ORDER BY created_at DESC LIMIT 1) AS email
+      FROM orders o
+      WHERE birthday IS NOT NULL AND RIGHT(birthday,2) = $1
+      GROUP BY phone
+      HAVING (SELECT email FROM orders WHERE phone = o.phone AND email IS NOT NULL LIMIT 1) IS NOT NULL
+    `, [month]);
+
+    let sent = 0, failed = 0;
+    for (const r of result.rows) {
+      const ok = await sendEmail(r.email, `¡Hola Churros! — Feliz Aniversário, ${r.name}! 🎂`, tplBirthday(r.name));
+      ok ? sent++ : failed++;
+    }
+    res.json({ sent, failed, message: `${sent} email(s) enviado(s)${failed ? `, ${failed} falharam` : ''}.` });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.listen(PORT, () => {

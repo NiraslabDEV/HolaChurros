@@ -373,9 +373,35 @@
         </div>
 
         <!-- Best-selling Products -->
-        <div class="bg-white border border-brown/10 p-5">
+        <div class="bg-white border border-brown/10 p-5 mb-5">
           <div class="text-xs font-bold tracking-widest uppercase text-muted mb-4">🥇 Produtos Mais Vendidos</div>
           <div id="topProductsContent"><div class="text-center py-8 text-muted text-xs">A carregar...</div></div>
+        </div>
+
+        <!-- Aniversariantes do Mês -->
+        <div class="bg-white border border-amber/30 p-5" style="background:linear-gradient(135deg,rgba(245,197,24,0.04),white);">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <div class="text-xs font-bold tracking-widest uppercase text-muted">🎂 Aniversariantes</div>
+              <div class="text-xs text-muted mt-0.5 opacity-60" id="bdayMonthLabel">Este mês</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <select id="bdayMonthSelect" onchange="loadBirthdays()"
+                class="text-xs font-bold text-brown border border-brown/20 bg-warm px-2 py-1.5 cursor-pointer">
+                <option value="01">Janeiro</option><option value="02">Fevereiro</option>
+                <option value="03">Março</option><option value="04">Abril</option>
+                <option value="05">Maio</option><option value="06">Junho</option>
+                <option value="07">Julho</option><option value="08">Agosto</option>
+                <option value="09">Setembro</option><option value="10">Outubro</option>
+                <option value="11">Novembro</option><option value="12">Dezembro</option>
+              </select>
+              <button onclick="sendBirthdayEmailAll()"
+                class="px-3 py-1.5 text-xs font-bold tracking-widest uppercase bg-brown text-gold hover:bg-ink transition-colors">
+                ✉ Email a todos
+              </button>
+            </div>
+          </div>
+          <div id="bdayContent"><div class="text-center py-8 text-muted text-xs">A carregar...</div></div>
         </div>
       </div>
 
@@ -1028,6 +1054,7 @@
         loadRegions();
         loadTopCustomers();
         loadTopProducts();
+        loadBirthdays();
       } catch(e) {
         document.getElementById('revChart').innerHTML='<div class="text-center py-8 text-red-500 text-xs">Erro ao carregar.</div>';
       }
@@ -1138,6 +1165,80 @@
             </div>`;
           }).join('') + `</div>`;
       } catch(e) { el.innerHTML='<div class="text-center py-6 text-red-500 text-xs">Erro ao carregar.</div>'; }
+    }
+
+    const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+    async function loadBirthdays() {
+      const el = document.getElementById('bdayContent');
+      if (!el) return;
+      const sel = document.getElementById('bdayMonthSelect');
+      // Default to current month on first load
+      if (!sel.dataset.inited) {
+        sel.value = String(new Date().getMonth()+1).padStart(2,'0');
+        sel.dataset.inited = '1';
+      }
+      const month = sel.value;
+      document.getElementById('bdayMonthLabel').textContent = MONTH_NAMES[parseInt(month,10)-1];
+      el.innerHTML = '<div class="text-center py-6 text-muted text-xs">A carregar...</div>';
+      try {
+        const data = await fetch(`/api/customers/birthdays?month=${month}`, { headers: authHeaders() }).then(r=>r.json());
+        if (!data.length) {
+          el.innerHTML = '<div class="text-center py-8 text-muted text-xs">Nenhum aniversariante em '+MONTH_NAMES[parseInt(month,10)-1]+'.</div>';
+          return;
+        }
+        const todayDay = String(new Date().getDate()).padStart(2,'0');
+        const todayMonth = String(new Date().getMonth()+1).padStart(2,'0');
+        el.innerHTML = data.map(c => {
+          const [bd, bm] = (c.birthday||'').split('/');
+          const isToday = bd === todayDay && bm === month;
+          const hasMail = !!c.email;
+          const waMsg = encodeURIComponent(`Olá ${c.name}! 🎂🎉 A equipa ¡Hola Churros! deseja-lhe um feliz aniversário! Como presente, tem um mimo especial à espera — venha visitar-nos ou faça um pedido hoje! 🥳 — ¡Hola Churros! Maputo`);
+          return `
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(61,30,8,0.07);${isToday?'background:rgba(245,197,24,0.08);margin:0 -8px;padding:10px 8px;':''}">
+            <div style="flex-shrink:0;font-size:24px;">${isToday?'🎂':'🎁'}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <span style="font-size:13px;font-weight:700;color:#1c1008;">${c.name}</span>
+                ${isToday?'<span style="font-size:10px;padding:1px 6px;background:#FEF3C7;color:#92400E;border:1px solid rgba(200,150,12,0.4);">🎉 HOJE</span>':''}
+              </div>
+              <div style="font-size:10px;color:#8C7045;margin-top:1px;">📞 ${c.phone}${hasMail?` · 📧 ${c.email}`:' · sem email'} · ${c.total_orders} ped.</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0;">
+              <a href="https://wa.me/${(c.phone||'').replace(/\D/g,'')}?text=${waMsg}" target="_blank"
+                style="padding:5px 10px;background:#25D366;color:white;font-size:10px;font-weight:700;text-decoration:none;white-space:nowrap;">💬 WA</a>
+              ${hasMail?`<button onclick="sendBirthdayEmail('${c.email}','${c.name.replace(/'/g,"\\'")}')"
+                style="padding:5px 10px;background:var(--brown);color:#F5C518;font-size:10px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;">✉ Email</button>`:''}
+            </div>
+          </div>`;
+        }).join('');
+      } catch(e) { el.innerHTML = '<div class="text-center py-6 text-red-500 text-xs">Erro ao carregar.</div>'; }
+    }
+
+    async function sendBirthdayEmail(email, name) {
+      try {
+        const r = await fetch('/api/birthday/email', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ email, name })
+        });
+        const d = await r.json();
+        if (d.success) showToast(`Email enviado para ${name}!`);
+        else showToast('Erro: ' + (d.error||'SMTP não configurado'));
+      } catch(e) { showToast('Erro ao enviar email.'); }
+    }
+
+    async function sendBirthdayEmailAll() {
+      const month = document.getElementById('bdayMonthSelect').value;
+      const monthName = MONTH_NAMES[parseInt(month,10)-1];
+      if (!confirm(`Enviar email de aniversário para todos os clientes de ${monthName} que têm email?`)) return;
+      try {
+        const r = await fetch(`/api/birthday/email/all?month=${month}`, {
+          method: 'POST', headers: authHeaders()
+        });
+        const d = await r.json();
+        showToast(d.message || `${d.sent} emails enviados!`);
+      } catch(e) { showToast('Erro ao enviar emails.'); }
     }
 
     async function loadReviews() {
