@@ -10,7 +10,7 @@ const app  = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '12mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 if (!process.env.DATABASE_URL) {
@@ -205,6 +205,8 @@ async function initDB() {
       );
       CREATE INDEX IF NOT EXISTS idx_reviews_email    ON reviews(email);
       CREATE INDEX IF NOT EXISTS idx_reviews_order_id ON reviews(order_id);
+      ALTER TABLE reviews ADD COLUMN IF NOT EXISTS photo          TEXT;
+      ALTER TABLE reviews ADD COLUMN IF NOT EXISTS photo_approved BOOLEAN DEFAULT FALSE;
     `);
     console.log('✅ Tabelas prontas');
   } catch (err) {
@@ -664,10 +666,68 @@ app.get('/api/reviews', adminOnly, async (_req, res) => {
   try {
     const result = await pool.query(`
       SELECT r.id, r.rating, r.comment, r.created_at, r.email,
-             o.customer_name, o.id AS order_id
+             r.photo, r.photo_approved,
+             o.customer_name, o.phone, o.total, o.id AS order_id
       FROM reviews r
       JOIN orders o ON o.id = r.order_id
       ORDER BY r.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Upload print do Google Maps para sorteio (público, via token)
+app.post('/api/review/:token/photo', async (req, res) => {
+  if (!dbCheck(res)) return;
+  try {
+    const { photo } = req.body;
+    if (!photo || !photo.startsWith('data:image/'))
+      return res.status(400).json({ error: 'Imagem inválida. Use JPEG ou PNG.' });
+    if (photo.length > 10_000_000)
+      return res.status(413).json({ error: 'Imagem demasiado grande (máx 7 MB).' });
+
+    const orderRes = await pool.query(
+      'SELECT id FROM orders WHERE review_token=$1 AND email IS NOT NULL',
+      [req.params.token]
+    );
+    if (!orderRes.rows.length) return res.status(404).json({ error: 'Link inválido.' });
+
+    const reviewRes = await pool.query('SELECT id FROM reviews WHERE order_id=$1', [orderRes.rows[0].id]);
+    if (!reviewRes.rows.length) return res.status(400).json({ error: 'Submeta a sua avaliação primeiro.' });
+
+    await pool.query('UPDATE reviews SET photo=$1, photo_approved=FALSE WHERE id=$2',
+      [photo, reviewRes.rows[0].id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin: aprovar ou rejeitar print do Google Maps
+app.patch('/api/reviews/:id/approve', adminOnly, async (req, res) => {
+  if (!dbCheck(res)) return;
+  try {
+    const { approved } = req.body;
+    await pool.query('UPDATE reviews SET photo_approved=$1 WHERE id=$2', [!!approved, req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin: lista de elegíveis para o sorteio (print aprovado + pedido >= 500 MT)
+app.get('/api/raffle/eligible', adminOnly, async (_req, res) => {
+  if (!dbCheck(res)) return;
+  try {
+    const result = await pool.query(`
+      SELECT r.id, r.rating, r.photo, r.photo_approved, r.created_at,
+             o.customer_name, o.phone, o.email, o.total, o.id AS order_id
+      FROM reviews r
+      JOIN orders o ON o.id = r.order_id
+      WHERE r.photo IS NOT NULL
+      ORDER BY r.photo_approved DESC NULLS LAST, r.created_at DESC
     `);
     res.json(result.rows);
   } catch (err) {

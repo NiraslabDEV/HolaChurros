@@ -316,6 +316,53 @@
         <div class="reward-sub">Mostre esta página à nossa equipa ao fazer o próximo pedido.</div>
       </div>
 
+      <!-- Google Maps CTA (4-5 stars) -->
+      <div id="googleMapsCta" style="display:none;margin-top:20px;background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border:1px solid #a5d6a7;padding:18px 20px;text-align:center;">
+        <div style="font-size:26px;line-height:1;margin-bottom:8px;">🌟</div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#2e7d32;margin-bottom:6px;">Partilhe no Google Maps</div>
+        <p style="font-size:13px;color:#388e3c;line-height:1.6;margin:0 0 14px;">
+          A sua opinião ajuda outros clientes a descobrir os nossos churros.<br/>
+          Leva apenas 30 segundos! 🙏
+        </p>
+        <a id="googleMapsLink" href="#" target="_blank" rel="noopener"
+          style="display:inline-block;background:#34a853;color:#fff;padding:11px 22px;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;border-radius:2px;">
+          ★ Avaliar no Google Maps →
+        </a>
+      </div>
+
+      <!-- Raffle photo upload -->
+      <div id="raffleSection" style="display:none;margin-top:16px;background:linear-gradient(135deg,rgba(200,150,12,0.08),rgba(245,197,24,0.04));border:1px solid rgba(200,150,12,0.3);padding:18px 20px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#C8960C;margin-bottom:8px;">🎰 Participe no Sorteio</div>
+        <p style="font-size:13px;color:#8C7045;line-height:1.6;margin:0 0 12px;">
+          Avaliou no Google Maps? Tire um <strong style="color:#3D1E08;">print do ecrã</strong> da sua avaliação,
+          suba aqui e participe no sorteio de <strong style="color:#3D1E08;">1 Churros Recheado grátis</strong> 🥐<br/>
+          <span style="font-size:11px;opacity:0.7;">(válido para encomendas de 500+ MT · a Anna confirma e avisa pelo WhatsApp)</span>
+        </p>
+        <div id="raffleUploadArea" style="border:2px dashed rgba(200,150,12,0.4);padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;" onclick="document.getElementById('raffleFileInput').click()">
+          <div style="font-size:32px;margin-bottom:6px;">📸</div>
+          <div style="font-size:12px;font-weight:600;color:#8C7045;">Clique para escolher imagem</div>
+          <div style="font-size:11px;color:#C8960C;margin-top:3px;">JPEG ou PNG · máx 7MB</div>
+        </div>
+        <input type="file" id="raffleFileInput" accept="image/*" style="display:none;" onchange="previewPhoto(event)"/>
+        <div id="rafflePreview" style="display:none;margin-top:12px;text-align:center;">
+          <img id="raffleImg" src="" alt="Preview" style="max-width:100%;max-height:220px;object-fit:contain;border:1px solid rgba(200,150,12,0.3);"/>
+          <div style="margin-top:10px;display:flex;gap:8px;">
+            <button onclick="uploadRafflePhoto()" id="raffleUploadBtn"
+              style="flex:1;background:#3D1E08;color:#F5C518;border:none;padding:11px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">
+              Submeter Print →
+            </button>
+            <button onclick="cancelPhoto()"
+              style="background:transparent;border:1px solid rgba(61,30,8,0.2);color:#8C7045;padding:11px 14px;font-size:12px;cursor:pointer;">
+              ✕
+            </button>
+          </div>
+        </div>
+        <div id="raffleSuccess" style="display:none;text-align:center;padding:12px;background:rgba(200,150,12,0.1);">
+          <div style="font-size:20px;margin-bottom:4px;">✅</div>
+          <div style="font-size:13px;font-weight:700;color:#3D1E08;">Print submetido! A Anna vai confirmar e contacta-lo/la pelo WhatsApp.</div>
+        </div>
+      </div>
+
       <a href="/" class="back-link">← Encomendar mais churros</a>
     </div>
 
@@ -440,6 +487,64 @@
         document.getElementById('loyaltyText').textContent =
           `${count} avaliação${count !== 1 ? 'ões' : ''}. Faltam ${rem} para o molho extra grátis!`;
       }
+
+      // Google Maps CTA — 4 ou 5 estrelas
+      const GMAPS_URL = 'https://search.google.com/local/writereview?placeid=COLE_AQUI_O_PLACE_ID';
+      if (selectedRating >= 4) {
+        document.getElementById('googleMapsLink').href = GMAPS_URL;
+        show('googleMapsCta');
+      }
+
+      // Sorteio — mostrar sempre (Anna avalia a elegibilidade)
+      show('raffleSection');
+    }
+
+    // ── Raffle photo upload ────────────────────────────────────────────────────
+    let rafflePhotoBase64 = null;
+
+    function previewPhoto(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.size > 7 * 1024 * 1024) {
+        alert('Imagem demasiado grande. Máximo 7 MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        rafflePhotoBase64 = e.target.result;
+        document.getElementById('raffleImg').src = rafflePhotoBase64;
+        document.getElementById('raffleUploadArea').style.display = 'none';
+        show('rafflePreview');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function cancelPhoto() {
+      rafflePhotoBase64 = null;
+      document.getElementById('raffleFileInput').value = '';
+      document.getElementById('raffleUploadArea').style.display = '';
+      hide('rafflePreview');
+    }
+
+    function uploadRafflePhoto() {
+      if (!rafflePhotoBase64) return;
+      const btn = document.getElementById('raffleUploadBtn');
+      btn.disabled = true;
+      btn.textContent = 'A enviar…';
+
+      fetch(`/api/review/${token}/photo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photo: rafflePhotoBase64 })
+      })
+        .then(r => r.json())
+        .then(d => {
+          if (d.error) { alert(d.error); btn.disabled = false; btn.textContent = 'Submeter Print →'; return; }
+          hide('rafflePreview');
+          hide('raffleUploadArea');
+          show('raffleSuccess');
+        })
+        .catch(() => { alert('Erro ao enviar. Tente novamente.'); btn.disabled = false; btn.textContent = 'Submeter Print →'; });
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
