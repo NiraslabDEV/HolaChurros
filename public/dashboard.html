@@ -1076,15 +1076,28 @@
         const data = await fetch(`/api/customers/top?period=${currentCustPeriod}`, { headers: authHeaders() }).then(r=>r.json());
         if (!data.length) { el.innerHTML='<div class="text-center py-8 text-muted text-xs">Sem pedidos no período.</div>'; return; }
         const medals=['🥇','🥈','🥉'];
+        const MONTH_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        const todayMonth = String(new Date().getMonth()+1).padStart(2,'0');
         el.innerHTML = data.map((c,i)=>{
-          const initials = c.name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+          const initials = (c.name||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
           const lastDate = new Date(c.last_order).toLocaleDateString('pt-MZ',{day:'2-digit',month:'2-digit'});
+          // Birthday display
+          let bdayBadge = '';
+          if (c.birthday) {
+            const [bd, bm] = c.birthday.split('/');
+            const monthName = MONTH_PT[parseInt(bm,10)-1] || bm;
+            const isBirthMonth = bm === todayMonth;
+            bdayBadge = `<span style="margin-left:6px;font-size:10px;padding:1px 6px;background:${isBirthMonth?'#FEF3C7':'rgba(61,30,8,0.06)'};color:${isBirthMonth?'#92400E':'#8C7045'};border:1px solid ${isBirthMonth?'rgba(200,150,12,0.4)':'rgba(61,30,8,0.1)'};">🎂 ${bd}/${monthName}${isBirthMonth?' 🎉':''}</span>`;
+          }
           return `
           <div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid rgba(61,30,8,0.07);">
             <div style="flex-shrink:0;width:34px;height:34px;border-radius:50%;background:${i<3?'#3D1E08':'#F0E6C8'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:${i<3?'#F5C518':'#8C7045'};">${i<3?medals[i]:initials}</div>
             <div style="flex:1;min-width:0;">
-              <div style="font-size:13px;font-weight:700;color:#1c1008;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
-              <div style="font-size:10px;color:#8C7045;margin-top:1px;">último pedido ${lastDate}</div>
+              <div style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">
+                <span style="font-size:13px;font-weight:700;color:#1c1008;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name||'—'}</span>
+                ${bdayBadge}
+              </div>
+              <div style="font-size:10px;color:#8C7045;margin-top:2px;">📞 ${c.phone} · último pedido ${lastDate}</div>
             </div>
             <div style="text-align:right;flex-shrink:0;">
               <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#3D1E08;">${c.orders} ped.</div>

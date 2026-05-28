@@ -1731,7 +1731,7 @@
     ];
     var WA_ICON = '<svg width="18" height="18" viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.832 4.575 2.2 6.34L4 28l6.83-2.178A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm6.3 16.87c-.26.73-1.53 1.42-2.09 1.47-.56.05-1.09.25-3.65-.76-3.07-1.22-5.04-4.37-5.19-4.57-.15-.2-1.23-1.63-1.23-3.11s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38s.4.01.57.01c.18.01.43-.07.67.51.25.6.84 2.06.91 2.21.08.15.12.33.02.53-.1.2-.14.33-.28.5-.14.18-.3.39-.43.52-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.6-.07.17-.2.7-.81.88-1.09.18-.28.36-.23.6-.14l2.26 1.07c.28.14.46.21.52.32.07.12.07.72-.19 1.45z"/></svg>';
 
-    var state = { step:0, cartItems:[], extras:[], zone:null, name:'', phone:'', email:'', addr:'', notes:'', pickup_time:'', errs:{}, waUrl:'' };
+    var state = { step:0, cartItems:[], extras:[], zone:null, name:'', phone:'', email:'', addr:'', notes:'', pickup_time:'', birthday_d:'', birthday_m:'', errs:{}, waUrl:'' };
 
     function zoneFee(id) {
       if (id === 'marescs') return new Date().getHours() >= 16 ? 200 : 150;
@@ -1796,6 +1796,10 @@
       if (z)  state.zone  = z.value;
       var pt = document.getElementById('ord_pickup_time');
       if (pt) state.pickup_time = pt.value;
+      var bd = document.getElementById('ord_bday_d');
+      var bm = document.getElementById('ord_bday_m');
+      if (bd) state.birthday_d = bd.value;
+      if (bm) state.birthday_m = bm.value;
     }
     function pickZone() { syncInputs(); render(); }
     function scrollToForm() {
@@ -1860,6 +1864,8 @@
         msg += '\n*Total: ' + total.toLocaleString() + ' MT*';
       }
       if (state.notes.trim()) msg += '\n\nObs: ' + state.notes;
+      var bday = (state.birthday_d && state.birthday_m) ? state.birthday_d + '/' + state.birthday_m : null;
+      if (bday) msg += '\n🎂 Aniversário: ' + bday;
 
       state.waUrl = 'https://wa.me/258852690365?text=' + encodeURIComponent(msg);
       state.step = 3;
@@ -1881,12 +1887,13 @@
           sauce: state.cartItems.filter(function(i){ return i.sauce; }).map(function(i){ return i.sauce; }).join(', ') || null,
           total: total, notes: state.notes,
           zone: state.zone || null,
-          email: state.email.trim() || null
+          email: state.email.trim() || null,
+          birthday: (state.birthday_d && state.birthday_m) ? state.birthday_d+'/'+state.birthday_m : null
         })
       }).catch(function(e){ console.warn('DB:',e); });
     }
     function newOrder() {
-      state = { step:0, cartItems:[], extras:[], zone:null, name:'', phone:'', email:'', addr:'', notes:'', pickup_time:'', errs:{}, waUrl:'' };
+      state = { step:0, cartItems:[], extras:[], zone:null, name:'', phone:'', email:'', addr:'', notes:'', pickup_time:'', birthday_d:'', birthday_m:'', errs:{}, waUrl:'' };
       render();
     }
 
@@ -2010,6 +2017,34 @@
       }
 
       html += '<div class="f-group"><label class="f-label">Email <span style="font-weight:400;opacity:.6">(opcional — confirmação e avaliação)</span></label><input class="f-input" type="email" id="ord_email" value="'+esc(state.email)+'" placeholder="exemplo@gmail.com"/></div>';
+
+      // Birthday field — enticing copy
+      var MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      html += '<div style="background:linear-gradient(135deg,rgba(200,150,12,0.08),rgba(245,197,24,0.06));border:1px solid rgba(200,150,12,0.25);padding:14px 16px;margin-bottom:16px;">';
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
+      html += '<span style="font-size:18px;">🎂</span>';
+      html += '<div>';
+      html += '<div style="font-size:12px;font-weight:700;color:var(--brown);letter-spacing:0.04em;">Data de aniversário</div>';
+      html += '<div style="font-size:11px;color:var(--muted);margin-top:1px;">Tem uma surpresa especial reservada para si no seu mês 🎁</div>';
+      html += '</div></div>';
+      html += '<div style="display:flex;gap:8px;">';
+      // Day select
+      html += '<select id="ord_bday_d" style="-webkit-appearance:none;flex:0.7;padding:9px 12px;border:1px solid rgba(61,30,8,0.15);background:rgba(255,255,255,0.8);font-size:13px;font-weight:600;color:var(--brown);cursor:pointer;">';
+      html += '<option value="">Dia</option>';
+      for (var dd=1; dd<=31; dd++) {
+        html += '<option value="'+(dd<10?'0'+dd:dd)+'"'+(state.birthday_d===(dd<10?'0'+dd:String(dd))?' selected':'')+'>'+dd+'</option>';
+      }
+      html += '</select>';
+      // Month select
+      html += '<select id="ord_bday_m" style="-webkit-appearance:none;flex:1;padding:9px 12px;border:1px solid rgba(61,30,8,0.15);background:rgba(255,255,255,0.8);font-size:13px;font-weight:600;color:var(--brown);cursor:pointer;">';
+      html += '<option value="">Mês</option>';
+      MONTHS.forEach(function(m, i) {
+        var mv = (i+1<10?'0'+(i+1):String(i+1));
+        html += '<option value="'+mv+'"'+(state.birthday_m===mv?' selected':'')+'>'+m+'</option>';
+      });
+      html += '</select>';
+      html += '</div></div>';
+
       html += '<div class="f-group"><label class="f-label">Observações <span style="font-weight:400;opacity:.6">(opcional)</span></label><textarea class="f-textarea" id="ord_notes" placeholder="Alergias, instruções especiais..." style="min-height:70px">'+esc(state.notes)+'</textarea></div>';
       html += '<div class="form-actions"><button class="btn-back" onclick="window._of.goStep(0)">&#8592; Voltar</button><button class="btn-next" onclick="window._of.validate()">Confirmar &#8594;</button></div>';
       return html;

@@ -167,6 +167,7 @@ async function initDB() {
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS review_token VARCHAR(64);
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS review_sent  BOOLEAN     DEFAULT FALSE;
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS zone         VARCHAR(100);
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS birthday     VARCHAR(5);  -- DD/MM
 
       CREATE TABLE IF NOT EXISTS analytics (
         id         SERIAL PRIMARY KEY,
@@ -297,15 +298,16 @@ app.get('/api/orders/stream', (req, res) => {
 app.post('/api/orders', async (req, res) => {
   if (!dbCheck(res)) return;
   try {
-    const { customer_name, phone, address, items, sauce, total, notes, extras, email, zone } = req.body;
+    const { customer_name, phone, address, items, sauce, total, notes, extras, email, zone, birthday } = req.body;
     const cleanEmail    = (email && email.includes('@')) ? email.trim().toLowerCase() : null;
     const review_token  = cleanEmail ? crypto.randomBytes(32).toString('hex') : null;
+    const cleanBirthday = (birthday && /^\d{2}\/\d{2}$/.test(birthday.trim())) ? birthday.trim() : null;
 
     const result = await pool.query(
-      `INSERT INTO orders (customer_name, phone, address, items, sauce, total, notes, extras, email, review_token, zone)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+      `INSERT INTO orders (customer_name, phone, address, items, sauce, total, notes, extras, email, review_token, zone, birthday)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
       [customer_name, phone, address, JSON.stringify(items), sauce, total, notes,
-       JSON.stringify(extras || []), cleanEmail, review_token, zone || null]
+       JSON.stringify(extras || []), cleanEmail, review_token, zone || null, cleanBirthday]
     );
     const order = result.rows[0];
     res.json({ success: true, order });
@@ -534,16 +536,24 @@ app.get('/api/customers/top', adminOnly, async (req, res) => {
     ? `AND created_at >= DATE_TRUNC('month', NOW())` : '';
   try {
     const result = await pool.query(`
-      SELECT customer_name, phone,
-             COUNT(*)::int AS orders,
-             COALESCE(SUM(total),0)::int AS revenue,
-             MAX(created_at) AS last_order
-      FROM orders WHERE status!='cancelado' ${dateFilter}
-      GROUP BY customer_name, phone
+      SELECT
+        o.phone,
+        (SELECT customer_name FROM orders
+         WHERE phone = o.phone AND status != 'cancelado'
+         ORDER BY created_at DESC LIMIT 1) AS name,
+        (SELECT birthday FROM orders
+         WHERE phone = o.phone AND birthday IS NOT NULL
+         ORDER BY created_at DESC LIMIT 1) AS birthday,
+        COUNT(*)::int AS orders,
+        COALESCE(SUM(total),0)::int AS revenue,
+        MAX(created_at) AS last_order
+      FROM orders o
+      WHERE status != 'cancelado' ${dateFilter}
+      GROUP BY o.phone
       ORDER BY orders DESC, revenue DESC LIMIT 10
     `);
     res.json(result.rows.map(r => ({
-      name: r.customer_name, phone: r.phone,
+      name: r.name, phone: r.phone, birthday: r.birthday,
       orders: r.orders, revenue: r.revenue,
       last_order: r.last_order
     })));
