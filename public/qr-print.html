@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Imprimir QR Code — ¡Hola Churros!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --brown: #3D1E08; --amber: #C8960C; --gold: #F5C518;
+      --cream: #FBF5E6; --warm: #F0E6C8; --muted: #8C7045;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #e8e0d0;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+
+    /* ── CONTROLS (screen only) ── */
+    .controls {
+      max-width: 780px;
+      margin: 0 auto 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .controls h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--brown);
+    }
+    .controls p { font-size: 13px; color: var(--muted); margin-top: 3px; }
+    .print-btn {
+      background: var(--brown);
+      color: var(--gold);
+      border: none;
+      padding: 12px 24px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .print-btn:hover { background: #1c0c03; }
+
+    /* ── CARDS GRID ── */
+    .cards-grid {
+      max-width: 780px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    /* ── CARD ── */
+    .qr-card {
+      background: var(--cream);
+      border: 3px solid var(--brown);
+      padding: 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── CARD — versão escura ── */
+    .qr-card.dark {
+      background: var(--brown);
+      border-color: var(--gold);
+    }
+
+    /* TOP BAND */
+    .card-top {
+      background: var(--brown);
+      padding: 18px 20px 14px;
+      text-align: center;
+    }
+    .qr-card.dark .card-top {
+      background: var(--gold);
+    }
+    .card-logo {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 900;
+      font-size: 22px;
+      color: var(--gold);
+      letter-spacing: -0.02em;
+    }
+    .qr-card.dark .card-top .card-logo { color: var(--brown); }
+    .card-sub {
+      font-size: 8px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(251,245,230,0.45);
+      margin-top: 3px;
+    }
+    .qr-card.dark .card-top .card-sub { color: rgba(61,30,8,0.55); }
+
+    /* QR AREA */
+    .card-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .qr-stars {
+      font-size: 18px;
+      letter-spacing: 3px;
+      margin-bottom: 12px;
+    }
+    .qr-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--brown);
+      text-align: center;
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+    .qr-card.dark .qr-headline { color: var(--gold); }
+    .qr-tagline {
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .qr-card.dark .qr-tagline { color: rgba(245,197,24,0.65); }
+
+    /* QR CODE IMAGE */
+    .qr-img-wrap {
+      background: white;
+      padding: 10px;
+      border: 2px solid rgba(61,30,8,0.15);
+      margin-bottom: 14px;
+    }
+    .qr-card.dark .qr-img-wrap { border-color: rgba(245,197,24,0.3); }
+    .qr-img-wrap img { display: block; width: 160px; height: 160px; }
+
+    /* CAMERA HINT */
+    .camera-hint {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .qr-card.dark .camera-hint { color: rgba(245,197,24,0.6); }
+
+    /* URL TEXT */
+    .qr-url {
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-align: center;
+      word-break: break-all;
+      padding: 6px 10px;
+      background: rgba(61,30,8,0.05);
+      width: 100%;
+    }
+    .qr-card.dark .qr-url {
+      background: rgba(245,197,24,0.08);
+      color: rgba(245,197,24,0.5);
+    }
+
+    /* BOTTOM BAND */
+    .card-bottom {
+      background: var(--warm);
+      padding: 12px 16px;
+      text-align: center;
+    }
+    .qr-card.dark .card-bottom {
+      background: rgba(245,197,24,0.1);
+    }
+    .card-bottom-text {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--brown);
+    }
+    .qr-card.dark .card-bottom-text { color: var(--gold); }
+    .card-bottom-sub {
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+    .qr-card.dark .card-bottom-sub { color: rgba(245,197,24,0.5); }
+
+    /* ── VERTICAL CARD (TENT) ── */
+    .qr-card.tall {
+      grid-column: span 1;
+    }
+
+    /* ── WIDE CARD ── */
+    .qr-card.wide {
+      grid-column: span 2;
+    }
+    .qr-card.wide .card-body {
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      padding: 24px;
+    }
+    .qr-card.wide .qr-img-wrap img { width: 140px; height: 140px; }
+    .wide-text { text-align: left; }
+    .wide-text .qr-headline { text-align: left; font-size: 18px; margin-bottom: 6px; }
+    .wide-text .qr-tagline  { text-align: left; margin-bottom: 14px; }
+    .wide-raffle {
+      background: rgba(200,150,12,0.1);
+      border: 1px solid rgba(200,150,12,0.25);
+      padding: 8px 12px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+    .wide-raffle strong { color: var(--brown); }
+
+    /* ── PRINT STYLES ── */
+    @media print {
+      body { background: white; padding: 0; }
+      .controls { display: none !important; }
+      .cards-grid {
+        max-width: 100%;
+        gap: 10px;
+        page-break-inside: avoid;
+      }
+      .qr-card { break-inside: avoid; }
+    }
+
+    @media (max-width: 600px) {
+      .cards-grid { grid-template-columns: 1fr; }
+      .qr-card.wide { grid-column: span 1; }
+      .qr-card.wide .card-body { flex-direction: column; }
+      .wide-text .qr-headline { text-align: center; }
+      .wide-text .qr-tagline  { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CONTROLS (não aparecem ao imprimir) -->
+  <div class="controls">
+    <div>
+      <h1>🖨️ Imprimir QR Code</h1>
+      <p>Escolha o modelo e clique em Imprimir. Use papel A4 ou corte em cartões.</p>
+    </div>
+    <button class="print-btn" onclick="window.print()">🖨️ Imprimir →</button>
+  </div>
+
+  <div class="cards-grid">
+
+    <!-- CARTÃO 1 — Claro (balcão) -->
+    <div class="qr-card">
+      <div class="card-top">
+        <div class="card-logo">¡Hola Churros!</div>
+        <div class="card-sub">Churreria Artesanal · Maputo</div>
+      </div>
+      <div class="card-body">
+        <div class="qr-stars">⭐⭐⭐⭐⭐</div>
+        <div class="qr-headline">Gostou?<br/>Avalie-nos!</div>
+        <div class="qr-tagline">Aponte a câmera para o código<br/>e deixe a sua avaliação no Google</div>
+        <div class="qr-img-wrap">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=https%3A%2F%2Fholachurrosmz.up.railway.app%2Favaliar&ecc=M&color=3D1E08" alt="QR Code" loading="eager"/>
+        </div>
+        <div class="camera-hint">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="15" rx="2"/><circle cx="12" cy="14" r="4"/><path d="M8 6V4h8v2"/></svg>
+          Aponte a câmera aqui
+        </div>
+        <div class="qr-url">holachurrosmz.up.railway.app/avaliar</div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-bottom-text">Obrigado pela sua visita! 🙏</div>
+        <div class="card-bottom-sub">A sua avaliação ajuda muito</div>
+      </div>
+    </div>
+
+    <!-- CARTÃO 2 — Escuro (mesa/vitrine) -->
+    <div class="qr-card dark">
+      <div class="card-top">
+        <div class="card-logo">¡Hola Churros!</div>
+        <div class="card-sub">Churreria Artesanal · Maputo</div>
+      </div>
+      <div class="card-body">
+        <div class="qr-stars">⭐⭐⭐⭐⭐</div>
+        <div class="qr-headline">A sua opinião<br/>importa!</div>
+        <div class="qr-tagline">Aponte a câmera e avalie<br/>no Google Maps em 30 segundos</div>
+        <div class="qr-img-wrap">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=https%3A%2F%2Fholachurrosmz.up.railway.app%2Favaliar&ecc=M&color=3D1E08" alt="QR Code" loading="eager"/>
+        </div>
+        <div class="camera-hint">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="15" rx="2"/><circle cx="12" cy="14" r="4"/><path d="M8 6V4h8v2"/></svg>
+          Aponte a câmera aqui
+        </div>
+        <div class="qr-url">holachurrosmz.up.railway.app/avaliar</div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-bottom-text">¡Muchas gracias! 🥐</div>
+        <div class="card-bottom-sub">Churros feitos com amor, todos os dias</div>
+      </div>
+    </div>
+
+    <!-- CARTÃO 3 — Horizontal (topo de balcão / tent card) -->
+    <div class="qr-card wide">
+      <div class="card-top" style="padding:14px 24px;">
+        <div class="card-logo" style="font-size:20px;display:inline;">¡Hola Churros!</div>
+        <span style="font-size:9px;color:rgba(251,245,230,0.35);letter-spacing:0.18em;text-transform:uppercase;margin-left:12px;">Churreria Artesanal · Maputo</span>
+      </div>
+      <div class="card-body">
+        <div class="qr-img-wrap">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=https%3A%2F%2Fholachurrosmz.up.railway.app%2Favaliar&ecc=M&color=3D1E08" alt="QR Code" loading="eager"/>
+        </div>
+        <div class="wide-text">
+          <div class="qr-stars" style="margin-bottom:8px;">⭐⭐⭐⭐⭐</div>
+          <div class="qr-headline">Gostou da experiência?<br/>Conta ao mundo!</div>
+          <div class="qr-tagline">Aponte a câmera para o QR e avalie no Google Maps.<br/>Leva menos de 1 minuto — obrigado de coração! 🙏</div>
+          <div class="wide-raffle">
+            🎰 <strong>Sorteio:</strong> Fez pedido online de 500+ MT? Depois de avaliar, submeta o
+            print pela ligação no seu email e participe no sorteio de
+            <strong>1 Churros Recheado grátis!</strong>
+          </div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-bottom-text">Av. Amílcar Cabral, 856 · Maputo · +258 85 269 0365 · @holachurrosmz</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="controls" style="margin-top:24px;justify-content:center;">
+    <p style="text-align:center;color:var(--muted);font-size:12px;">
+      💡 <strong>Dica:</strong> Imprima em papel A4, corte e plastifique os cartões pequenos para o balcão e mesas.<br/>
+      O cartão horizontal fica bem dobrado ao meio como tent card para a vitrine.
+    </p>
+  </div>
+
+</body>
+</html>

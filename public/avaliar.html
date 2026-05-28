@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Avalie-nos — ¡Hola Churros!</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --brown: #3D1E08; --amber: #C8960C; --gold: #F5C518;
+      --cream: #FBF5E6; --warm: #F0E6C8; --muted: #8C7045; --ink: #1c1008;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--brown);
+      padding: 28px 24px 24px;
+      text-align: center;
+    }
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 900;
+      font-size: 30px;
+      color: var(--gold);
+      letter-spacing: -0.02em;
+    }
+    .logo-sub {
+      font-size: 10px;
+      color: rgba(251,245,230,0.45);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+
+    /* ── MAIN ── */
+    main {
+      flex: 1;
+      padding: 40px 20px 60px;
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .hero-stars {
+      font-size: 36px;
+      letter-spacing: 4px;
+      margin-bottom: 16px;
+      animation: pop 0.5s ease-out;
+    }
+    @keyframes pop {
+      0%   { transform: scale(0.6); opacity: 0; }
+      80%  { transform: scale(1.08); }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--brown);
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .hero-sub {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* ── MAPS BUTTON ── */
+    .maps-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: #fff;
+      border: 2px solid #34a853;
+      color: #1a6b32;
+      padding: 18px 24px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s;
+      width: 100%;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 12px rgba(52,168,83,0.12);
+    }
+    .maps-btn:hover {
+      background: #34a853;
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(52,168,83,0.25);
+    }
+    .maps-btn svg { flex-shrink: 0; }
+    .maps-hint {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 36px;
+    }
+
+    /* ── STEPS ── */
+    .steps {
+      background: white;
+      border: 1px solid rgba(61,30,8,0.1);
+      padding: 20px 22px;
+      margin-bottom: 28px;
+    }
+    .steps-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 16px;
+    }
+    .step-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .step-row:last-child { margin-bottom: 0; }
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--brown);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-text {
+      font-size: 13px;
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    .step-text strong { color: var(--brown); }
+
+    /* ── RAFFLE TEASER ── */
+    .raffle-box {
+      background: linear-gradient(135deg, rgba(200,150,12,0.08), rgba(245,197,24,0.04));
+      border: 1px solid rgba(200,150,12,0.3);
+      padding: 18px 20px;
+      margin-bottom: 28px;
+    }
+    .raffle-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 8px;
+    }
+    .raffle-text {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 12px;
+    }
+    .raffle-text strong { color: var(--brown); }
+    .raffle-link {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--brown);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--brown);
+      padding: 18px;
+      text-align: center;
+    }
+    .footer-text {
+      font-size: 10px;
+      color: rgba(251,245,230,0.4);
+      letter-spacing: 0.06em;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">¡Hola Churros!</div>
+    <div class="logo-sub">Churreria Artesanal · Maputo</div>
+  </header>
+
+  <main>
+
+    <div class="hero">
+      <div class="hero-stars">⭐⭐⭐⭐⭐</div>
+      <h1 class="hero-title">A sua opinião<br/>faz a diferença!</h1>
+      <p class="hero-sub">Cada avaliação ajuda-nos a melhorar<br/>e outros clientes a descobrir os nossos churros.</p>
+    </div>
+
+    <!--
+      ════════════════════════════════════════════════════════════
+      ACTUALIZAR AQUI: substitua o link pelo link real do Google
+      Maps da Hola Churros. Para obter o link:
+        1. Pesquise "Hola Churros Maputo" no Google Maps
+        2. Clique em "Escrever uma avaliação"
+        3. Copie o URL do browser
+      ════════════════════════════════════════════════════════════
+    -->
+    <a id="mapsBtn" class="maps-btn"
+       href="https://search.google.com/local/writereview?placeid=COLE_AQUI_O_PLACE_ID"
+       target="_blank" rel="noopener">
+      <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+        <path d="M24 4C15.163 4 8 11.163 8 20c0 13 16 28 16 28s16-15 16-28c0-8.837-7.163-16-16-16z" fill="#34a853"/>
+        <circle cx="24" cy="20" r="6" fill="white"/>
+      </svg>
+      Avaliar no Google Maps →
+    </a>
+    <div class="maps-hint">Abre directamente a página de avaliação · leva menos de 1 minuto ⏱️</div>
+
+    <div class="steps">
+      <div class="steps-title">Como fazer</div>
+      <div class="step-row">
+        <div class="step-num">1</div>
+        <div class="step-text">Clique no botão verde acima para abrir o Google Maps</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>Escolha as estrelas</strong> e escreva um comentário (opcional)</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">3</div>
+        <div class="step-text">Clique <strong>Publicar</strong> — feito! Obrigado de coração 🙏</div>
+      </div>
+    </div>
+
+    <div class="raffle-box">
+      <div class="raffle-tag">🎰 Sorteio de Churros Grátis</div>
+      <p class="raffle-text">
+        Fez um pedido <strong>online de 500+ MT</strong>? Depois de publicar a sua avaliação no Google,
+        tire um <strong>print do ecrã</strong> e submeta pela ligação de avaliação que recebeu no email.<br/>
+        A Anna confirma e avisa-o/a pelo WhatsApp se for seleccionado/a para ganhar
+        <strong>1 Churros Recheado grátis</strong>! 🥐
+      </p>
+      <a href="/" class="raffle-link">→ Encomendar agora</a>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="footer-text">Av. Amílcar Cabral, 856 · Maputo · +258 85 269 0365 · @holachurrosmz</div>
+  </footer>
+
+</body>
+</html>
