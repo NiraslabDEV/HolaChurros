@@ -220,22 +220,78 @@ function dbCheck(res) {
 }
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
-let sessionToken = null;
+let adminToken    = null;  // gerado no login de admin
+let employeeToken = null;  // gerado no login de funcionário
 
 app.post('/api/auth', (req, res) => {
   const { password } = req.body;
-  const correct = process.env.DASHBOARD_PASSWORD || 'churros2025';
-  if (password !== correct) return res.status(401).json({ error: 'Senha incorrecta.' });
-  sessionToken = crypto.randomBytes(32).toString('hex');
-  res.json({ token: sessionToken });
+  const adminPw    = process.env.DASHBOARD_PASSWORD || 'churros2025';
+  const employeePw = process.env.EMPLOYEE_PASSWORD  || null;
+
+  if (password === adminPw) {
+    adminToken = crypto.randomBytes(32).toString('hex');
+    return res.json({ token: adminToken, role: 'admin' });
+  }
+  if (employeePw && password === employeePw) {
+    employeeToken = crypto.randomBytes(32).toString('hex');
+    return res.json({ token: employeeToken, role: 'employee' });
+  }
+  res.status(401).json({ error: 'Senha incorrecta.' });
 });
 
+function getRole(req) {
+  const tok = (req.headers['authorization'] || '').replace('Bearer ', '').trim()
+            || req.query.t || '';
+  if (!tok) return null;
+  if (adminToken    && tok === adminToken)    return 'admin';
+  if (employeeToken && tok === employeeToken) return 'employee';
+  return null;
+}
+
 function authRequired(req, res, next) {
-  const header = req.headers['authorization'] || '';
-  const token  = header.startsWith('Bearer ') ? header.slice(7) : null;
-  if (!token || token !== sessionToken) return res.status(401).json({ error: 'Não autorizado.' });
+  const role = getRole(req);
+  if (!role) return res.status(401).json({ error: 'Não autorizado.' });
+  req.role = role;
   next();
 }
+
+function adminOnly(req, res, next) {
+  if (getRole(req) !== 'admin') return res.status(403).json({ error: 'Apenas administradores.' });
+  req.role = 'admin';
+  next();
+}
+
+// Quem sou eu?
+app.get('/api/me', (req, res) => {
+  const role = getRole(req);
+  if (!role) return res.status(401).json({ error: 'Não autorizado.' });
+  res.json({ role });
+});
+
+// ── SSE: notificações em tempo real ───────────────────────────────────────────
+const sseClients = new Set();
+
+function pushEvent(type, payload = {}) {
+  if (!sseClients.size) return;
+  const msg = `data: ${JSON.stringify({ type, ...payload })}\n\n`;
+  for (const r of [...sseClients]) {
+    try { r.write(msg); } catch(e) { sseClients.delete(r); }
+  }
+}
+
+app.get('/api/orders/stream', (req, res) => {
+  if (!getRole(req)) return res.status(401).end();
+  res.writeHead(200, {
+    'Content-Type':  'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection':    'keep-alive',
+    'X-Accel-Buffering': 'no'
+  });
+  res.write(`data: ${JSON.stringify({ type: 'connected' })}\n\n`);
+  sseClients.add(res);
+  const hb = setInterval(() => { try { res.write(': hb\n\n'); } catch(e) {} }, 25000);
+  req.on('close', () => { sseClients.delete(res); clearInterval(hb); });
+});
 
 // ── ORDERS ────────────────────────────────────────────────────────────────────
 app.post('/api/orders', async (req, res) => {
@@ -253,6 +309,9 @@ app.post('/api/orders', async (req, res) => {
     );
     const order = result.rows[0];
     res.json({ success: true, order });
+
+    // Notificar dashboard em tempo real
+    pushEvent('new_order', { id: order.id, customer: order.customer_name });
 
     // Send confirmation email (fire-and-forget)
     if (cleanEmail) {
@@ -327,7 +386,7 @@ app.post('/api/events', async (req, res) => {
   }
 });
 
-app.get('/api/events', authRequired, async (req, res) => {
+app.get('/api/events', adminOnly, async (req, res) => {
   if (!dbCheck(res)) return;
   try {
     const result = await pool.query('SELECT * FROM events ORDER BY created_at DESC');
@@ -337,7 +396,7 @@ app.get('/api/events', authRequired, async (req, res) => {
   }
 });
 
-app.patch('/api/events/:id/status', authRequired, async (req, res) => {
+app.patch('/api/events/:id/status', adminOnly, async (req, res) => {
   if (!dbCheck(res)) return;
   try {
     const { status } = req.body;
@@ -392,7 +451,7 @@ app.post('/api/analytics', async (req, res) => {
   } catch (_) {}
 });
 
-app.get('/api/analytics/funnel', authRequired, async (req, res) => {
+app.get('/api/analytics/funnel', adminOnly, async (req, res) => {
   if (!pool) return res.json([]);
   try {
     const [visits, menuClicks, orderStarts, step1, step2, waSent] = await Promise.all([
@@ -420,7 +479,7 @@ app.get('/api/analytics/funnel', authRequired, async (req, res) => {
 });
 
 // ── REVENUE ───────────────────────────────────────────────────────────────────
-app.get('/api/revenue', authRequired, async (req, res) => {
+app.get('/api/revenue', adminOnly, async (req, res) => {
   if (!pool) return res.json([]);
   const period = req.query.period || 'monthly';
   try {
@@ -453,7 +512,7 @@ app.get('/api/revenue', authRequired, async (req, res) => {
 });
 
 // ── REGIONS ───────────────────────────────────────────────────────────────────
-app.get('/api/regions', authRequired, async (req, res) => {
+app.get('/api/regions', adminOnly, async (req, res) => {
   if (!pool) return res.json([]);
   try {
     const result = await pool.query(`
@@ -468,7 +527,7 @@ app.get('/api/regions', authRequired, async (req, res) => {
 });
 
 // ── TOP CUSTOMERS ─────────────────────────────────────────────────────────────
-app.get('/api/customers/top', authRequired, async (req, res) => {
+app.get('/api/customers/top', adminOnly, async (req, res) => {
   if (!pool) return res.json([]);
   const period = req.query.period || 'all';
   const dateFilter = period === 'month'
@@ -488,6 +547,28 @@ app.get('/api/customers/top', authRequired, async (req, res) => {
       orders: r.orders, revenue: r.revenue,
       last_order: r.last_order
     })));
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── TOP PRODUCTS ──────────────────────────────────────────────────────────────
+app.get('/api/products/top', adminOnly, async (req, res) => {
+  if (!pool) return res.json([]);
+  try {
+    const result = await pool.query(`
+      SELECT
+        item->>'name'  AS name,
+        item->>'desc'  AS description,
+        COUNT(*)::int  AS orders,
+        COALESCE(SUM((item->>'price')::numeric), 0)::int AS revenue
+      FROM orders, jsonb_array_elements(items) AS item
+      WHERE status != 'cancelado'
+        AND items IS NOT NULL
+        AND jsonb_typeof(items) = 'array'
+      GROUP BY item->>'name', item->>'desc'
+      ORDER BY orders DESC
+      LIMIT 10
+    `);
+    res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -545,7 +626,7 @@ app.post('/api/review/:token', async (req, res) => {
 });
 
 // Admin: list all reviews
-app.get('/api/reviews', authRequired, async (_req, res) => {
+app.get('/api/reviews', adminOnly, async (_req, res) => {
   if (!dbCheck(res)) return;
   try {
     const result = await pool.query(`

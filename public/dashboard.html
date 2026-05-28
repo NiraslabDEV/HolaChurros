@@ -116,6 +116,7 @@
         <span class="hidden md:inline text-xs text-cream/40 font-semibold tracking-widest uppercase">Dashboard</span>
       </div>
       <div class="flex items-center gap-3 md:gap-4">
+        <span id="userRoleBadge" class="hidden px-2 py-0.5 text-xs font-bold tracking-widest uppercase bg-amber/20 text-amber border border-amber/30">Funcionário</span>
         <a href="/" class="text-xs font-semibold tracking-widest uppercase text-cream/60 hover:text-gold transition-colors">← Site</a>
         <button onclick="logout()" class="text-xs font-semibold tracking-widest uppercase text-cream/60 hover:text-red-400 transition-colors">Sair</button>
       </div>
@@ -347,7 +348,7 @@
         </div>
 
         <!-- Regions + Top Customers -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
 
           <!-- Regions -->
           <div class="bg-white border border-brown/10 p-5">
@@ -369,6 +370,12 @@
             <div id="customersContent"><div class="text-center py-8 text-muted text-xs">A carregar...</div></div>
           </div>
 
+        </div>
+
+        <!-- Best-selling Products -->
+        <div class="bg-white border border-brown/10 p-5">
+          <div class="text-xs font-bold tracking-widest uppercase text-muted mb-4">🥇 Produtos Mais Vendidos</div>
+          <div id="topProductsContent"><div class="text-center py-8 text-muted text-xs">A carregar...</div></div>
         </div>
       </div>
 
@@ -495,6 +502,8 @@
       return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' };
     }
 
+    let userRole = 'admin'; // admin | employee
+
     async function checkLogin() {
       const pw = document.getElementById('pwInput').value;
       document.getElementById('loginErr').classList.add('hidden');
@@ -507,11 +516,47 @@
         const d = await r.json();
         if (!r.ok) { document.getElementById('loginErr').classList.remove('hidden'); return; }
         sessionStorage.setItem('hc_token', d.token);
+        userRole = d.role || 'admin';
+        sessionStorage.setItem('hc_role', userRole);
+
+        // Apply role restrictions
+        if (userRole === 'employee') {
+          ['tabEvents','tabFunnel','tabRevenue','tabReviews'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+          });
+          // Employee badge
+          document.getElementById('userRoleBadge').classList.remove('hidden');
+        }
+
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('dashMain').classList.remove('hidden');
-        loadStats(); loadOrders(); loadEvents(); loadFunnel();
-        setInterval(poll, 30000);
+        loadStats(); loadOrders();
+        if (userRole === 'admin') { loadEvents(); loadFunnel(); }
+        setInterval(poll, 15000);
+        connectSSE();
       } catch(e) { document.getElementById('loginErr').classList.remove('hidden'); }
+    }
+
+    function connectSSE() {
+      const tok = sessionStorage.getItem('hc_token');
+      if (!tok || typeof EventSource === 'undefined') return;
+      const es = new EventSource(`/api/orders/stream?t=${encodeURIComponent(tok)}`);
+      es.onmessage = async (ev) => {
+        try {
+          const data = JSON.parse(ev.data);
+          if (data.type === 'new_order') {
+            const prev = lastPendingCount;
+            await loadStats();
+            if (currentTab === 'orders') loadOrders();
+            if (lastPendingCount > (prev || 0)) {
+              playNotification();
+              showToast(`Novo pedido de ${data.customer || 'cliente'}!`);
+            }
+          }
+        } catch(e) {}
+      };
+      es.onerror = () => { es.close(); setTimeout(connectSSE, 10000); };
     }
 
     async function poll() {
@@ -670,7 +715,12 @@
             const sauce = i.sauce ? ` (${i.sauce})` : '';
             return name + sauce;
           }).join(', ');
-          const date = new Date(o.created_at).toLocaleDateString('pt-MZ',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+          const _dtT = new Date(o.created_at);
+          const date = _dtT.toLocaleString('pt-MZ',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+          const isTodayT = _dtT.toDateString() === new Date().toDateString();
+          const timeLabelT = isTodayT
+            ? `<span style="color:#C8960C;font-weight:700;">Hoje ${_dtT.toLocaleTimeString('pt-MZ',{hour:'2-digit',minute:'2-digit'})}</span>`
+            : date;
           const wamsg = `Olá ${o.customer_name}, confirmamos o seu pedido #${o.id} de ${Number(o.total).toLocaleString()} MT. Em breve receberá a entrega! — Hola Churros`;
           return `<tr class="border-b border-brown/5 hover:bg-warm/30 transition-colors">
             <td class="px-4 py-3 text-muted font-mono text-xs">#${o.id}</td>
@@ -681,7 +731,7 @@
               ${o.address?`<div class="text-muted truncate mt-0.5">${o.address}</div>`:''}
             </td>
             <td class="px-4 py-3 text-right font-serif font-bold text-brown whitespace-nowrap">${Number(o.total).toLocaleString()} MT</td>
-            <td class="px-4 py-3 text-xs text-muted whitespace-nowrap">${date}</td>
+            <td class="px-4 py-3 text-xs whitespace-nowrap">${timeLabelT}</td>
             <td class="px-4 py-3">${badgeHtml(o.status)}</td>
             <td class="px-4 py-3 min-w-[140px]">
               <div class="flex flex-col gap-1.5">
@@ -703,11 +753,16 @@
             const sauce = i.sauce ? ` (${i.sauce})` : '';
             return name + sauce;
           }).join(', ');
-          const date = new Date(o.created_at).toLocaleDateString('pt-MZ',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+          const _dt2 = new Date(o.created_at);
+          const date = _dt2.toLocaleString('pt-MZ',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+          const isToday2 = _dt2.toDateString() === new Date().toDateString();
+          const timeLabel2 = isToday2
+            ? `<span style="color:#C8960C;font-weight:700;">Hoje ${_dt2.toLocaleTimeString('pt-MZ',{hour:'2-digit',minute:'2-digit'})}</span>`
+            : `<span>${date}</span>`;
           const wamsg = `Olá ${o.customer_name}, confirmamos o seu pedido #${o.id} de ${Number(o.total).toLocaleString()} MT. Em breve receberá a entrega! — Hola Churros`;
           return `<div class="order-card">
             <div class="card-header">
-              <span class="card-id">#${o.id} · ${date}</span>
+              <span class="card-id">#${o.id} · ${timeLabel2}</span>
               ${badgeHtml(o.status)}
             </div>
             <div class="card-row">
@@ -972,6 +1027,7 @@
         document.getElementById('revChart').innerHTML = buildBarChart(data);
         loadRegions();
         loadTopCustomers();
+        loadTopProducts();
       } catch(e) {
         document.getElementById('revChart').innerHTML='<div class="text-center py-8 text-red-500 text-xs">Erro ao carregar.</div>';
       }
@@ -1037,6 +1093,38 @@
           </div>`;
         }).join('');
       } catch(e) { el.innerHTML='<div class="text-center py-8 text-red-500 text-xs">Erro.</div>'; }
+    }
+
+    async function loadTopProducts() {
+      const el = document.getElementById('topProductsContent');
+      if (!el) return;
+      try {
+        const data = await fetch('/api/products/top', { headers: authHeaders() }).then(r=>r.json());
+        if (!data.length) { el.innerHTML='<div class="text-center py-6 text-muted text-xs">Sem pedidos ainda.</div>'; return; }
+        const max = Math.max(...data.map(d=>d.orders), 1);
+        const medals = ['🥇','🥈','🥉'];
+        el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">` +
+          data.map((p,i) => {
+            const pct = Math.round((p.orders / max) * 100);
+            return `
+            <div style="padding:14px 16px;background:${i===0?'#FEF9EC':'#fff'};border:1px solid ${i===0?'rgba(200,150,12,0.3)':'rgba(61,30,8,0.08)'};">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <span style="font-size:16px;">${medals[i]||'#'+(i+1)}</span>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:#1c1008;">${p.name}</div>
+                  <div style="font-size:11px;color:#8C7045;">${p.description||''}</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="flex:1;height:4px;background:rgba(61,30,8,0.08);border-radius:2px;overflow:hidden;">
+                  <div style="height:100%;width:${pct}%;background:${i===0?'#C8960C':'#3D1E08'};border-radius:2px;"></div>
+                </div>
+                <span style="font-size:12px;font-weight:700;color:#3D1E08;white-space:nowrap;">${p.orders} ped.</span>
+                <span style="font-size:11px;color:#8C7045;white-space:nowrap;">${fmtMT(p.revenue)}</span>
+              </div>
+            </div>`;
+          }).join('') + `</div>`;
+      } catch(e) { el.innerHTML='<div class="text-center py-6 text-red-500 text-xs">Erro ao carregar.</div>'; }
     }
 
     async function loadReviews() {
